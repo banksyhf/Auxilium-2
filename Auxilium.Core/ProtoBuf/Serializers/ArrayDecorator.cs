@@ -1,27 +1,30 @@
 ﻿#if !NO_RUNTIME
+
+using ProtoBuf.Meta;
 using System;
 using System.Collections;
-using ProtoBuf.Meta;
 
 #if FEAT_IKVM
 using Type = IKVM.Reflection.Type;
 using IKVM.Reflection;
 #else
-using System.Reflection;
+
 #endif
 
 namespace ProtoBuf.Serializers
 {
-    sealed class ArrayDecorator : ProtoDecoratorBase
+    internal sealed class ArrayDecorator : ProtoDecoratorBase
     {
-
         private readonly int fieldNumber;
+
         private const byte
                    OPTIONS_WritePacked = 1,
                    OPTIONS_OverwriteList = 2,
                    OPTIONS_SupportNull = 4;
+
         private readonly byte options;
         private readonly WireType packedWireType;
+
         public ArrayDecorator(TypeModel model, IProtoSerializer tail, int fieldNumber, bool writePacked, WireType packedWireType, Type arrayType, bool overwriteList, bool supportNull)
             : base(tail)
         {
@@ -41,7 +44,7 @@ namespace ProtoBuf.Serializers
             {
                 if (writePacked) throw new InvalidOperationException("Only simple data-types can use packed encoding");
                 packedWireType = WireType.None;
-            }       
+            }
             this.fieldNumber = fieldNumber;
             this.packedWireType = packedWireType;
             if (writePacked) options |= OPTIONS_WritePacked;
@@ -49,10 +52,15 @@ namespace ProtoBuf.Serializers
             if (supportNull) options |= OPTIONS_SupportNull;
             this.arrayType = arrayType;
         }
-        readonly Type arrayType, itemType; // this is, for example, typeof(int[])
+
+        private readonly Type arrayType, itemType; // this is, for example, typeof(int[])
+
         public override Type ExpectedType { get { return arrayType; } }
+
         public override bool RequiresOldValue { get { return AppendToCollection; } }
+
         public override bool ReturnsValue { get { return true; } }
+
 #if FEAT_COMPILER
         protected override void EmitWrite(ProtoBuf.Compiler.CompilerContext ctx, ProtoBuf.Compiler.Local valueFrom)
         {
@@ -127,13 +135,16 @@ namespace ProtoBuf.Serializers
             ctx.BranchIfLess(processItem, false);
         }
 #endif
+
         private bool AppendToCollection
         {
             get { return (options & OPTIONS_OverwriteList) == 0; }
         }
+
         private bool SupportNull { get { return (options & OPTIONS_SupportNull) != 0; } }
 
 #if !FEAT_IKVM
+
         public override void Write(object value, ProtoWriter dest)
         {
             IList arr = (IList)value;
@@ -160,8 +171,9 @@ namespace ProtoBuf.Serializers
             if (writePacked)
             {
                 ProtoWriter.EndSubItem(token, dest);
-            }            
+            }
         }
+
         public override object Read(object value, ProtoReader source)
         {
             int field = source.FieldNumber;
@@ -176,7 +188,7 @@ namespace ProtoBuf.Serializers
                 ProtoReader.EndSubItem(token, source);
             }
             else
-            { 
+            {
                 do
                 {
                     list.Add(Tail.Read(null, source));
@@ -188,6 +200,7 @@ namespace ProtoBuf.Serializers
             list.CopyTo(result, oldLen);
             return result;
         }
+
 #endif
 
 #if FEAT_COMPILER
@@ -236,7 +249,6 @@ namespace ProtoBuf.Serializers
                         ctx.LoadValue(list);
                         ctx.LoadValue(newArr);
                         ctx.LoadValue(oldLen);
-                        
                     }
                     else
                     {
@@ -261,10 +273,9 @@ namespace ProtoBuf.Serializers
                 }
                 ctx.LoadValue(newArr);
             }
-
-
         }
 #endif
     }
 }
+
 #endif

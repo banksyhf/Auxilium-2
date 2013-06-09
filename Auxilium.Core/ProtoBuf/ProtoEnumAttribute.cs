@@ -22,7 +22,10 @@ namespace ProtoBuf
         /// Indicates whether this instance has a customised value mapping
         /// </summary>
         /// <returns>true if a specific value is set</returns>
-        public bool HasValue() { return hasValue; }
+        public bool HasValue()
+        {
+            return hasValue;
+        }
 
         private bool hasValue;
         private int enumValue;
@@ -32,6 +35,7 @@ namespace ProtoBuf
         /// (this name is not used during serialization).
         /// </summary>
         public string Name { get { return name; } set { name = value; } }
+
         private string name;
     }
 }

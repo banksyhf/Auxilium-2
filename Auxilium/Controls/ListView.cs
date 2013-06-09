@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -11,17 +8,20 @@ namespace Auxilium.Controls
     {
         [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
         private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+
         protected override void CreateHandle()
         {
             base.CreateHandle();
             SetWindowTheme(this.Handle, "explorer", null);
         }
+
         public ListView()
         {
             this.DoubleBuffered = true;
             this.View = System.Windows.Forms.View.Details;
             this.FullRowSelect = true;
         }
+
         protected override void WndProc(ref Message m)
         {
             switch (m.Msg)
@@ -32,12 +32,14 @@ namespace Auxilium.Controls
                         SetWindowLong(this.Handle, GwlStyle, style & ~WsHscroll);
                     base.WndProc(ref m);
                     break;
+
                 default:
                     base.WndProc(ref m);
                     break;
             }
         }
-        const int GwlStyle = -16;
+
+        private const int GwlStyle = -16;
         public const int WsHscroll = 0x00100000;
 
         public static int GetWindowLong(IntPtr hWnd, int nIndex)

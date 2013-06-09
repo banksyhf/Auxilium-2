@@ -57,7 +57,7 @@
             // 
             this.tabMain.Controls.Add(this.tabLogin);
             this.tabMain.Controls.Add(this.tabRegister);
-            this.tabMain.DesignerIndex = 0;
+            this.tabMain.DesignerIndex = 1;
             this.tabMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabMain.Location = new System.Drawing.Point(0, 0);
             this.tabMain.Name = "tabMain";
@@ -199,7 +199,7 @@
             this.regEmail.Location = new System.Drawing.Point(144, 114);
             this.regEmail.Name = "regEmail";
             this.regEmail.Size = new System.Drawing.Size(160, 22);
-            this.regEmail.TabIndex = 6;
+            this.regEmail.TabIndex = 4;
             // 
             // label1
             // 
@@ -209,7 +209,7 @@
             this.label1.Location = new System.Drawing.Point(104, 117);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(34, 13);
-            this.label1.TabIndex = 5;
+            this.label1.TabIndex = 3;
             this.label1.Text = "Email";
             // 
             // btnReturn
@@ -244,7 +244,7 @@
             this.regPassword.Name = "regPassword";
             this.regPassword.PasswordChar = '•';
             this.regPassword.Size = new System.Drawing.Size(160, 22);
-            this.regPassword.TabIndex = 4;
+            this.regPassword.TabIndex = 6;
             // 
             // lblRegPassword
             // 
@@ -254,7 +254,7 @@
             this.lblRegPassword.Location = new System.Drawing.Point(82, 145);
             this.lblRegPassword.Name = "lblRegPassword";
             this.lblRegPassword.Size = new System.Drawing.Size(56, 13);
-            this.lblRegPassword.TabIndex = 3;
+            this.lblRegPassword.TabIndex = 5;
             this.lblRegPassword.Text = "Password";
             // 
             // lblRegUsername

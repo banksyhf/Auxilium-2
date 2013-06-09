@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ProtoBuf;
-using Auxilium.Core.Interfaces;
+﻿using ProtoBuf;
 
 namespace Auxilium.Core.Packets.ServerPackets
 {
@@ -17,18 +12,18 @@ namespace Auxilium.Core.Packets.ServerPackets
         [ProtoMember(2)]
         public string Message { get; private set; }
 
-        public LoginResponse() { }
+        [ProtoMember(3)]
+        public int ErrorCode { get; set; }
 
-        public LoginResponse(bool successful)
+        public LoginResponse()
         {
-            Successful = successful;
-            Message = null;
         }
 
-        public LoginResponse(bool successful, string message)
+        public LoginResponse(bool successful, string message, int errorCode)
         {
             Successful = successful;
             Message = message;
+            ErrorCode = errorCode;
         }
 
         public void Execute(Client client)

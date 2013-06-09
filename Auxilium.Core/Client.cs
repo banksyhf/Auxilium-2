@@ -1,8 +1,4 @@
-﻿using LZ4;
-using Auxilium.Core.Interfaces;
-using Auxilium.Core.Packets;
-using Auxilium.Core.Packets.ClientPackets;
-using Auxilium.Core.Packets.ServerPackets;
+﻿using Auxilium.Core.Packets;
 using ProtoBuf;
 using ProtoBuf.Meta;
 using System;
@@ -11,9 +7,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Cryptography;
 
 namespace Auxilium.Core
 {
@@ -24,6 +20,7 @@ namespace Auxilium.Core
         //TODO: Create and handle ReadQueue.
 
         public event ClientFailEventHandler ClientFail;
+
         public delegate void ClientFailEventHandler(Client s);
 
         private void OnClientFail()
@@ -35,6 +32,7 @@ namespace Auxilium.Core
         }
 
         public event ClientStateEventHandler ClientState;
+
         public delegate void ClientStateEventHandler(Client s, bool connected);
 
         private void OnClientState(bool connected)
@@ -46,30 +44,45 @@ namespace Auxilium.Core
         }
 
         public event ClientReadEventHandler ClientRead;
+
         public delegate void ClientReadEventHandler(Client s, IPacket packet);
 
         private void OnClientRead(byte[] e)
         {
             if (ClientRead != null)
             {
-                e = Decompressor.Decompress(e);
-
-                using (MemoryStream deserialized = new MemoryStream(e))
+                try
                 {
-                    IPacket packet = Serializer.Deserialize<IPacket>(deserialized);
-                    ClientRead(this, packet);
+                    using (MemoryStream deserialized = new MemoryStream(e))
+                    {
+                        IPacket packet = Serializer.DeserializeWithLengthPrefix<IPacket>(deserialized, PrefixStyle.Fixed32);
+
+                        if (packet.GetType() == typeof(KeepAliveResponse))
+                            _parentServer.HandleKeepAlivePacket((KeepAliveResponse)packet, this);
+
+                        else if (packet.GetType() == typeof(KeepAlive))
+                            new KeepAliveResponse() { TimeSent = ((KeepAlive)packet).TimeSent }.Execute(this);
+
+                        else
+                            ClientRead(this, packet);
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine();
                 }
             }
         }
 
         public event ClientWriteEventHandler ClientWrite;
-        public delegate void ClientWriteEventHandler(Client s);
 
-        private void OnClientWrite()
+        public delegate void ClientWriteEventHandler(Client s, IPacket packet, long length, byte[] rawData);
+
+        private void OnClientWrite(IPacket packet, long length, byte[] rawData)
         {
             if (ClientWrite != null)
             {
-                ClientWrite(this);
+                ClientWrite(this, packet, length, rawData);
             }
         }
 
@@ -84,14 +97,18 @@ namespace Auxilium.Core
 
         private Queue<byte[]> _sendQueue;
 
-        private readonly SocketAsyncEventArgs[] _items = new SocketAsyncEventArgs[2];
+        private SocketAsyncEventArgs[] _item = new SocketAsyncEventArgs[2];
 
         private bool[] _processing = new bool[2];
 
         public int BufferSize { get; set; }
+
         public UserState Value { get; set; }
 
+        public HashAlgorithm HashAlgorithm { get; set; }
+
         private IPEndPoint _endPoint;
+
         public IPEndPoint EndPoint
         {
             get
@@ -100,25 +117,30 @@ namespace Auxilium.Core
             }
         }
 
+        private Server _parentServer;
+
         public bool Connected { get; private set; }
 
-        private LZ4Compressor32 Compressor { get; set; }
-        private LZ4Decompressor32 Decompressor { get; set; }
+        private int _typeIndex = 0;
 
-        public Client()
+        public Client(int bufferSize)
         {
             _asyncOperation = AsyncOperationManager.CreateOperation(null);
-
+            BufferSize = bufferSize;
         }
 
-        public Client(Socket sock, int size)
+        internal Client(Server server, Socket sock, int size, Type[] packets)
         {
             try
             {
+                AddTypesToSerializer(typeof(IPacket), packets);
+
+                _parentServer = server;
+
                 _asyncOperation = AsyncOperationManager.CreateOperation(null);
-                
+
                 Initialize();
-                _items[0].SetBuffer(new byte[size], 0, size);
+                _item[0].SetBuffer(new byte[size], 0, size);
 
                 _handle = sock;
 
@@ -130,8 +152,8 @@ namespace Auxilium.Core
                 _endPoint = (IPEndPoint)_handle.RemoteEndPoint;
                 Connected = true;
 
-                if (!_handle.ReceiveAsync(_items[0]))
-                    Process(null, _items[0]);
+                if (!_handle.ReceiveAsync(_item[0]))
+                    Process(null, _item[0]);
             }
             catch
             {
@@ -152,9 +174,9 @@ namespace Auxilium.Core
                 _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
                 _handle.NoDelay = true;
 
-                _items[0].RemoteEndPoint = new IPEndPoint(IPAddress.Parse(host), port);
-                if (!_handle.ConnectAsync(_items[0]))
-                    Process(null, _items[0]);
+                _item[0].RemoteEndPoint = new IPEndPoint(GetAddress(host), port);
+                if (!_handle.ConnectAsync(_item[0]))
+                    Process(null, _item[0]);
             }
             catch (Exception ex)
             {
@@ -164,17 +186,24 @@ namespace Auxilium.Core
             }
         }
 
+        private IPAddress GetAddress(string host)
+        {
+            IPAddress[] hosts = Dns.GetHostAddresses(host);
+
+            foreach (IPAddress h in hosts)
+                if (h.AddressFamily == AddressFamily.InterNetwork)
+                    return h;
+
+            return null;
+        }
 
         private void Initialize()
         {
-            Compressor = new LZ4Compressor32();
-            Decompressor = new LZ4Decompressor32();
-
-            Type[] packetTypes = Utils.GetTypesInNamespace("Packets");
-            for (int i = 1; i <= packetTypes.Length; i++)
+            AddTypesToSerializer(typeof(IPacket), new Type[]
             {
-                RuntimeTypeModel.Default[typeof(IPacket)].AddSubType(i, packetTypes[i - 1]);
-            }
+                typeof(KeepAlive),
+                typeof(KeepAliveResponse)
+            });
 
             _processing = new bool[2];
 
@@ -186,10 +215,35 @@ namespace Auxilium.Core
 
             _sendQueue = new Queue<byte[]>();
 
-            _items[0] = new SocketAsyncEventArgs();
-            _items[1] = new SocketAsyncEventArgs();
-            _items[0].Completed += Process;
-            _items[1].Completed += Process;
+            _item[0] = new SocketAsyncEventArgs();
+            _item[0].Completed += Process;
+            _item[1] = new SocketAsyncEventArgs();
+            _item[1].Completed += Process;
+        }
+
+        /// <summary>
+        /// Adds a Type to the serializer so a message can be properly serialized.
+        /// </summary>
+        /// <param name="parent">The parent type, i.e.: IPacket</param>
+        /// <param name="type">Type to be added</param>
+        public void AddTypeToSerializer(Type parent, Type type)
+        {
+            if (type == null || parent == null)
+                throw new ArgumentNullException();
+
+            bool isAdded = false;
+            foreach (SubType subType in RuntimeTypeModel.Default[parent].GetSubtypes())
+                if (subType.DerivedType.Type == type)
+                    isAdded = true;
+
+            if (!isAdded)
+                RuntimeTypeModel.Default[parent].AddSubType(_typeIndex += 1, type);
+        }
+
+        public void AddTypesToSerializer(Type parent, params Type[] types)
+        {
+            foreach (Type type in types)
+                AddTypeToSerializer(parent, type);
         }
 
         private void Process(object s, SocketAsyncEventArgs e)
@@ -203,12 +257,13 @@ namespace Auxilium.Core
                         case SocketAsyncOperation.Connect:
                             _endPoint = (IPEndPoint)_handle.RemoteEndPoint;
                             Connected = true;
-                            _items[0].SetBuffer(new byte[BufferSize], 0, BufferSize);
+                            _item[0].SetBuffer(new byte[BufferSize], 0, BufferSize);
 
                             _asyncOperation.Post(x => OnClientState((bool)x), true);
                             if (!_handle.ReceiveAsync(e))
                                 Process(null, e);
                             break;
+
                         case SocketAsyncOperation.Receive:
                             if (!Connected)
                                 return;
@@ -216,6 +271,8 @@ namespace Auxilium.Core
                             if (e.BytesTransferred != 0)
                             {
                                 HandleRead(e.Buffer, 0, e.BytesTransferred);
+
+                                e.SetBuffer(new byte[BufferSize], 0, BufferSize);
 
                                 if (!_handle.ReceiveAsync(e))
                                     Process(null, e);
@@ -225,11 +282,11 @@ namespace Auxilium.Core
                                 Disconnect();
                             }
                             break;
+
                         case SocketAsyncOperation.Send:
                             if (!Connected)
                                 return;
 
-                            _asyncOperation.Post(x => OnClientWrite(), null);
                             _sendIndex += e.BytesTransferred;
 
                             bool eos = (_sendIndex >= _sendBuffer.Length);
@@ -275,67 +332,77 @@ namespace Auxilium.Core
             if (raise)
                 _asyncOperation.Post(x => OnClientState(false), null);
 
-            Value = null;
+            //Value = null;
             _endPoint = null;
         }
-
-        //public void SendHeader(byte header)
-        //{
-        //    if (!Connected) return;
-
-        //    //byte[] data = Serializer.Serialize(header);
-
-        //    //Send(data);
-        //}
 
         public void Send<T>(IPacket packet) where T : IPacket
         {
             if (!Connected) return;
 
-            byte[] data = null;
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                Serializer.Serialize<T>(ms, (T)packet);
-                data = ms.ToArray();
-            }
-            
-            Send(data);
-        }
-
-
-        private void Send(byte[] data)
-        {
-            data = Compressor.Compress(data);
-
-            _sendQueue.Enqueue(data);
-
-            if (!_processing[1])
-            {
-                _processing[1] = true;
-                HandleSendQueue();
-            }
-        }
-
-
-        private void HandleSendQueue()
-        {
             try
             {
-                if (_sendIndex >= _sendBuffer.Length)
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    _sendIndex = 0;
-                    _sendBuffer = Header(_sendQueue.Dequeue());
+                    Serializer.SerializeWithLengthPrefix<T>(ms, (T)packet, PrefixStyle.Fixed32);
+
+                    byte[] data = ms.ToArray();
+
+                    Send(data);
+                    OnClientWrite(packet, data.LongLength, data);
                 }
-
-                int write = Math.Min(_sendBuffer.Length - _sendIndex, BufferSize);
-                _items[1].SetBuffer(_sendBuffer, _sendIndex, write);
-
-                if (!_handle.SendAsync(_items[1]))
-                    Process(null, _items[1]);
             }
             catch
             {
+                return;
+            }
+        }
+
+        private void Send(byte[] data)
+        {
+            lock (_sendQueue)
+            {
+                if (!Connected)
+                    return;
+
+                _sendQueue.Enqueue(data);
+
+                if (!_processing[1])
+                {
+                    _processing[1] = true;
+                    HandleSendQueue();
+                }
+            }
+        }
+
+        private void HandleSendQueue()
+        {
+            lock (_sendQueue)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        if (_sendIndex >= _sendBuffer.Length)
+                        {
+                            _sendIndex = 0;
+                            _sendBuffer = Header(_sendQueue.Dequeue());
+                        }
+
+                        int write = Math.Min(_sendBuffer.Length - _sendIndex, BufferSize);
+
+                        _item[1].SetBuffer(_sendBuffer, _sendIndex, write);
+
+                        if (!_handle.SendAsync(_item[1]))
+                            Process(null, _item[1]);
+
+                        return;
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
                 Disconnect();
             }
         }
@@ -355,7 +422,8 @@ namespace Auxilium.Core
                 if (_readIndex >= _readBuffer.Length)
                 {
                     _readIndex = 0;
-                    Array.Resize(ref _readBuffer, BitConverter.ToInt32(data, index));
+                    int len = BitConverter.ToInt32(data, index);
+                    Array.Resize(ref _readBuffer, (len < 0) ? _readBuffer.Length : len);
                     index += 4;
                 }
 
@@ -365,7 +433,13 @@ namespace Auxilium.Core
 
                 if (_readIndex >= _readBuffer.Length)
                 {
-                    _asyncOperation.Post(x => OnClientRead((byte[])x), _readBuffer);
+                    unsafe
+                    {
+                        //Create a copy of _readBuffer so it doesn't get changed by the time OnClientRead is actually called - .Post() is slow.
+                        byte[] buff = new byte[_readBuffer.Length];
+                        fixed (byte* src = _readBuffer) fixed (byte* dst = buff) memcpy(dst, src, (ulong)_readBuffer.Length);
+                        _asyncOperation.Post(x => OnClientRead((byte[])x), buff);
+                    }
                 }
 
                 if (read < (length - index))
@@ -373,8 +447,13 @@ namespace Auxilium.Core
                     HandleRead(data, index + read, length);
                 }
             }
-            catch { }
+            catch
+            {
+                Disconnect();
+            }
         }
 
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false), SuppressUnmanagedCodeSecurity]
+        public static unsafe extern void* memcpy(void* dest, void* src, ulong count);
     }
 }

@@ -1,27 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Auxilium.Core;
-using Auxilium.Core.Interfaces;
+﻿using Auxilium.Core;
+using Auxilium.Core.Packets;
 using Auxilium.Core.Packets.ClientPackets;
 using Auxilium.Core.Packets.ServerPackets;
+using Auxilium_Server.SQL;
+using System;
 using System.Windows.Forms;
 
 namespace Auxilium_Server
 {
-    class Program
+    internal class Program
     {
-        static Server Server { get; set; }
+        private static Server Server { get; set; }
 
-        static void Main(string[] args)
+        private const string HashAlrogithm = "SHA1";
+
+        private static void Main(string[] args)
         {
+            Server = new Server(8192, 500);
 
-            Server = new Server()
+            Server.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
-                BufferSize = 8192,
-                MaxConnections = 500
-            };
+                typeof(Initialize),
+                typeof(Login), typeof(LoginResponse),
+                typeof(Register), typeof(RegisterResponse),
+                typeof(ClientMessage), typeof(BroadcastMessage)
+            });
 
             Server.ClientRead += ClientRead;
             Server.ClientState += ClientState;
@@ -31,57 +34,90 @@ namespace Auxilium_Server
             Application.Run();
         }
 
-        static void ClientState(Server s, Client c, bool connected)
+        private static void ClientState(Server server, Client client, bool connected)
         {
+            Console.WriteLine("{0}connected", connected ? "" : "dis");
             if (connected)
             {
-                c.Value = new UserState();
+                client.Value = new UserState();
+
+                new Initialize(HashAlrogithm).Execute(client);
             }
             else
             {
-                HandleClientDisconnected(c);
+                HandleClientDisconnected(client);
             }
         }
 
-        static void ClientRead(Server s, Client c, IPacket packet)
+        private static void ClientRead(Server server, Client client, IPacket packet)
         {
             Type packetType = packet.GetType();
 
-            if (c.Value.Authenticated)
+            if (client.Value.Authenticated)
             {
-
             }
             else
             {
                 if (packetType == typeof(Register))
                 {
+                    HandleRegisterPacket(client, (Register)packet);
                 }
                 else if (packetType == typeof(Login))
                 {
-                    new LoginResponse(true).Execute(c);
+                    HandleLoginPacket(client, (Login)packet);
                 }
                 else if (packetType == typeof(ClientMessage))
                 {
-
                 }
-
             }
         }
 
         #region " Packet Handlers "
 
-        static void HandleLoginPacket(Client client, Login packet)
+        private static void HandleLoginPacket(Client client, Login packet)
         {
+            //Get a matching user from the database with the username and password.
+            User user = Accessor.GetUser(packet.Username, packet.Password);
 
-            
+            bool success = user != null;
 
+            string message = success ? null : "Username or password is incorrect.";
+            int errorCode = success ? (int)MessageBoxIcon.None : (int)MessageBoxIcon.Error;
+
+            new LoginResponse(success, message, errorCode).Execute(client);
         }
 
-        #endregion
-
-        static void HandleClientDisconnected(Client client)
+        private static void HandleRegisterPacket(Client client, Register packet)
         {
+            if (string.IsNullOrWhiteSpace(packet.Username))
+            {
+                new RegisterResponse(false, "Username must not be empty.", (int)MessageBoxIcon.Error).Execute(client);
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(packet.Password))
+            {
+                new RegisterResponse(false, "Password must not be empty.", (int)MessageBoxIcon.Error).Execute(client);
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(packet.Email))
+            {
+                new RegisterResponse(false, "Email must not be empty.", (int)MessageBoxIcon.Error).Execute(client);
+                return;
+            }
 
+            bool success = Accessor.InsertUser(packet.Username, packet.Password, packet.Email);
+
+            string message = success ? null : "Another user already exists with that username and/or email.";
+
+            int errorCode = success ? (int)MessageBoxIcon.None : (int)MessageBoxIcon.Error;
+
+            new RegisterResponse(success, message, errorCode).Execute(client);
+        }
+
+        #endregion " Packet Handlers "
+
+        private static void HandleClientDisconnected(Client client)
+        {
         }
     }
 }

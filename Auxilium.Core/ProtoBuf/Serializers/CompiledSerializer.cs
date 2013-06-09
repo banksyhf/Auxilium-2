@@ -2,8 +2,6 @@
 using System;
 using ProtoBuf.Meta;
 
-
-
 namespace ProtoBuf.Serializers
 {
     sealed class CompiledSerializer : IProtoTypeSerializer

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Auxilium.Core.Interfaces;
-using ProtoBuf;
+﻿using ProtoBuf;
+using System.Security.Cryptography;
 
 namespace Auxilium.Core.Packets.ClientPackets
 {
@@ -17,12 +13,14 @@ namespace Auxilium.Core.Packets.ClientPackets
         [ProtoMember(2)]
         public string Password { get; private set; }
 
-        public Login() { }
+        public Login()
+        {
+        }
 
-        public Login(string username, string password)
+        public Login(string username, string password, HashAlgorithm algo)
         {
             Username = username;
-            Password = password;
+            Password = password.Hash(algo);
         }
 
         public void Execute(Client client)

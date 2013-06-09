@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections;
+
 #if !NO_GENERICS
+
 using System.Collections.Generic;
+
 #endif
+
 using System.IO;
 using ProtoBuf.Meta;
 
@@ -18,15 +22,16 @@ namespace ProtoBuf
 #if FX11
     sealed
 #else
-    static
+ static
 #endif
-        class ExtensibleUtil
+ class ExtensibleUtil
     {
 #if FX11
         private ExtensibleUtil() { } // not a static class for C# 1.2 reasons
 #endif
 
 #if !NO_RUNTIME && !NO_GENERICS
+
         /// <summary>
         /// All this does is call GetExtendedValuesTyped with the correct type for "instance";
         /// this ensures that we don't get issues with subclasses declaring conflicting types -
@@ -39,7 +44,9 @@ namespace ProtoBuf
                 yield return value;
             }
         }
+
 #endif
+
         /// <summary>
         /// All this does is call GetExtendedValuesTyped with the correct type for "instance";
         /// this ensures that we don't get issues with subclasses declaring conflicting types -
@@ -69,10 +76,11 @@ namespace ProtoBuf
 #endif
             Stream stream = extn.BeginQuery();
             object value = null;
-            try {
+            try
+            {
                 SerializationContext ctx = new SerializationContext();
                 using (ProtoReader reader = new ProtoReader(stream, model, ctx))
-                {       
+                {
                     while (model.TryDeserializeAuxiliaryType(reader, format, tag, type, ref value, true, false, false, false) && value != null)
                     {
                         if (!singleton)
@@ -99,10 +107,12 @@ namespace ProtoBuf
                 result.CopyTo(resultArr, 0);
                 return resultArr;
 #endif
-            } finally {
+            }
+            finally
+            {
                 extn.EndQuery(stream);
             }
-#endif       
+#endif
         }
 
         internal static void AppendExtendValue(TypeModel model, IExtensible instance, int tag, DataFormat format, object value)
@@ -110,8 +120,8 @@ namespace ProtoBuf
 #if FEAT_IKVM
             throw new NotSupportedException();
 #else
-            if(instance == null) throw new ArgumentNullException("instance");
-            if(value == null) throw new ArgumentNullException("value");
+            if (instance == null) throw new ArgumentNullException("instance");
+            if (value == null) throw new ArgumentNullException("value");
 
             // TODO
             //model.CheckTagNotInUse(tag);
@@ -121,19 +131,24 @@ namespace ProtoBuf
             if (extn == null) throw new InvalidOperationException("No extension object available; appended data would be lost.");
             bool commit = false;
             Stream stream = extn.BeginAppend();
-            try {
-                using(ProtoWriter writer = new ProtoWriter(stream, model, null)) {
+            try
+            {
+                using (ProtoWriter writer = new ProtoWriter(stream, model, null))
+                {
                     model.TrySerializeAuxiliaryType(writer, null, format, tag, value, false);
                     writer.Close();
                 }
                 commit = true;
             }
-            finally {
+            finally
+            {
                 extn.EndAppend(stream, commit);
             }
 #endif
         }
+
 #if !NO_GENERICS
+
         /// <summary>
         /// Stores the given value into the instance's stream; the serializer
         /// is inferred from TValue and format.
@@ -145,7 +160,7 @@ namespace ProtoBuf
         {
             AppendExtendValue(model, instance, tag, format, value);
         }
+
 #endif
     }
-
 }

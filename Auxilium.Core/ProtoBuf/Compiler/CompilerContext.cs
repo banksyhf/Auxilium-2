@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 #endif
 
-
 namespace ProtoBuf.Compiler
 {
     internal struct CodeLabel
@@ -84,9 +83,9 @@ namespace ProtoBuf.Compiler
                         head.EmitCallback(ctx, typedVal, (TypeModel.CallbackType)i);
                     }
                     ctx.Return();
-                }                
+                }
             }
-            
+
             ctx.Emit(OpCodes.Ret);
             return (ProtoCallback)ctx.method.CreateDelegate(
                 typeof(ProtoCallback));
@@ -95,7 +94,7 @@ namespace ProtoBuf.Compiler
         {
             Type type = head.ExpectedType;
             CompilerContext ctx = new CompilerContext(type, false, true, model, typeof(object));
-            
+
             using (Local typedVal = new Local(ctx, type))
             {
                 if (!type.IsValueType)
@@ -105,7 +104,7 @@ namespace ProtoBuf.Compiler
                     ctx.StoreValue(typedVal);
                 }
                 else
-                {   
+                {
                     ctx.LoadValue(ctx.InputValue);
                     CodeLabel notNull = ctx.DefineLabel(), endNull = ctx.DefineLabel();
                     ctx.BranchIfTrue(notNull, true);
@@ -184,6 +183,7 @@ namespace ProtoBuf.Compiler
                         Helpers.DebugWriteLine(OpCodes.Ldobj + ": " + type);
 #endif
                         break;
+
                     default:
 #if FX11
                         throw new NotSupportedException();
@@ -236,11 +236,8 @@ namespace ProtoBuf.Compiler
         }
 #endif
 
-
-
         private readonly bool nonPublic, isWriter;
         internal bool NonPublic { get { return nonPublic; } }
-
 
         private readonly Local inputValue;
         public Local InputValue { get { return inputValue; } }
@@ -374,7 +371,6 @@ namespace ProtoBuf.Compiler
 #endif
                     }
                     break;
-
             }
         }
 
@@ -423,7 +419,7 @@ namespace ProtoBuf.Compiler
                 il.Emit(OpCodes.Starg_S, b);
 #if DEBUG_COMPILE
                 Helpers.DebugWriteLine(OpCodes.Starg_S + ": $" + b);
-#endif                
+#endif
             }
             else
             {
@@ -464,7 +460,7 @@ namespace ProtoBuf.Compiler
                     case 2: Emit(OpCodes.Ldloc_2); break;
                     case 3: Emit(OpCodes.Ldloc_3); break;
                     default:
-#endif             
+#endif
                         OpCode code = UseShortForm(local) ? OpCodes.Ldloc_S :  OpCodes.Ldloc;
                         il.Emit(code, local.Value);
 #if DEBUG_COMPILE
@@ -500,7 +496,7 @@ namespace ProtoBuf.Compiler
             if (method == null || method.ReturnType != expectedType
                 || method.GetParameters().Length != 0) throw new ArgumentException("methodName");
             LoadReaderWriter();
-            EmitCall(method);            
+            EmitCall(method);
         }
         internal void EmitBasicRead(Type helperType, string methodName, Type expectedType)
         {
@@ -607,7 +603,7 @@ namespace ProtoBuf.Compiler
         {
 #if !FX11
             Type underlyingType;
-            
+
             if (type.IsValueType && (underlyingType = Helpers.GetUnderlyingType(type)) != null)
             {
                 if(tail.RequiresOldValue)
@@ -749,6 +745,7 @@ namespace ProtoBuf.Compiler
                         // top-level type
                         isPublic = ((Type)member).IsPublic || InternalsVisible(((Type)member).Assembly);
                         break;
+
                     case MemberTypes.NestedType:
                         Type type = (Type)member;
                         do
@@ -756,14 +753,17 @@ namespace ProtoBuf.Compiler
                             isPublic = type.IsNestedPublic || type.IsPublic || ((type.DeclaringType == null || type.IsNestedAssembly || type.IsNestedFamORAssem) && InternalsVisible(type.Assembly));
                         } while (isPublic && (type = type.DeclaringType) != null); // ^^^ !type.IsNested, but not all runtimes have that
                         break;
+
                     case MemberTypes.Field:
                         FieldInfo field = ((FieldInfo)member);
                         isPublic = field.IsPublic || ((field.IsAssembly || field.IsFamilyOrAssembly) && InternalsVisible(field.DeclaringType.Assembly));
                         break;
+
                     case MemberTypes.Constructor:
                         ConstructorInfo ctor = ((ConstructorInfo)member);
                         isPublic = ctor.IsPublic || ((ctor.IsAssembly || ctor.IsFamilyOrAssembly) && InternalsVisible(ctor.DeclaringType.Assembly));
                         break;
+
                     case MemberTypes.Method:
                         MethodInfo method = ((MethodInfo)member);
                         isPublic = method.IsPublic || ((method.IsAssembly || method.IsFamilyOrAssembly) && InternalsVisible(method.DeclaringType.Assembly));
@@ -773,13 +773,15 @@ namespace ProtoBuf.Compiler
                             if(
 #if !SILVERLIGHT
                                 member is MethodBuilder ||
-#endif                
-                                member.DeclaringType == MapType(typeof(TypeModel))) isPublic = true; 
+#endif
+                                member.DeclaringType == MapType(typeof(TypeModel))) isPublic = true;
                         }
                         break;
+
                     case MemberTypes.Property:
                         isPublic = true; // defer to get/set
                         break;
+
                     default:
                         throw new NotSupportedException(member.MemberType.ToString());
                 }
@@ -795,7 +797,6 @@ namespace ProtoBuf.Compiler
                             throw new InvalidOperationException("Non-public member cannot be used with full dll compilation: " +
                                 member.DeclaringType.FullName + "." + member.Name);
                     }
-                    
                 }
             }
         }
@@ -909,7 +910,6 @@ namespace ProtoBuf.Compiler
                     Helpers.DebugWriteLine(code + ": $" + local.Value);
 #endif
                 }
-
             }
             else
             {   // reference-type; already *is* the address; just load it
@@ -933,7 +933,6 @@ namespace ProtoBuf.Compiler
 #endif
         }
 
-
         internal void BranchIfTrue(CodeLabel label, bool @short)
         {
             OpCode code = @short ? OpCodes.Brtrue_S : OpCodes.Brtrue;
@@ -954,7 +953,6 @@ namespace ProtoBuf.Compiler
         {
             Emit(OpCodes.Ceq);
         }
-
 
         internal void CopyValue()
         {
@@ -988,8 +986,6 @@ namespace ProtoBuf.Compiler
         {
             Emit(OpCodes.Sub);
         }
-
-
 
         public void Switch(CodeLabel[] jumpTable)
         {
@@ -1082,7 +1078,7 @@ namespace ProtoBuf.Compiler
             /// the variable must exist, and note that (unlike in C#) it is
             /// the variables *final* value that gets disposed. If you need
             /// *original* disposal, copy your variable first.
-            /// 
+            ///
             /// It is the callers responsibility to ensure that the variable's
             /// scope fully-encapsulates the "using"; if not, the variable
             /// may be re-used (and thus re-assigned) unexpectedly.
@@ -1104,7 +1100,6 @@ namespace ProtoBuf.Compiler
                 this.local = local;
                 this.ctx = ctx;
                 label = ctx.BeginTry();
-                
             }
             public void Dispose()
             {
@@ -1126,6 +1121,7 @@ namespace ProtoBuf.Compiler
                             ctx.LoadValue(local);
                             ctx.CastToObject(type);
                             break;
+
                         default:
 #if FX11
                             throw new NotSupportedException();
@@ -1134,13 +1130,13 @@ namespace ProtoBuf.Compiler
                             break;
 #endif
                     }
-                    ctx.EmitCall(dispose);                    
+                    ctx.EmitCall(dispose);
                 }
                 else
                 {
                     Compiler.CodeLabel @null = ctx.DefineLabel();
                     if (disposableType.IsAssignableFrom(type))
-                    {   // *known* to be IDisposable; just needs a null-check                            
+                    {   // *known* to be IDisposable; just needs a null-check
                         ctx.LoadValue(local);
                         ctx.BranchIfFalse(@null, true);
                         ctx.LoadAddress(local, type);
@@ -1205,7 +1201,6 @@ namespace ProtoBuf.Compiler
 #if DEBUG_COMPILE
             Helpers.DebugWriteLine(OpCodes.Newarr + ": " + elementType);
 #endif
-
         }
 
         internal void LoadArrayValue(Local arr, Local i)
@@ -1243,13 +1238,10 @@ namespace ProtoBuf.Compiler
                     {
                         Emit(OpCodes.Ldelem_Ref);
                     }
-             
+
                     break;
             }
-            
         }
-
-
 
         internal void LoadValue(Type type)
         {
@@ -1270,17 +1262,22 @@ namespace ProtoBuf.Compiler
                 case ProtoTypeCode.UInt16:
                     Emit(OpCodes.Conv_I4);
                     break;
+
                 case ProtoTypeCode.Int32:
                     break;
+
                 case ProtoTypeCode.Int64:
                     Emit(OpCodes.Conv_Ovf_I4);
                     break;
+
                 case ProtoTypeCode.UInt32:
                     Emit(uint32Overflow ? OpCodes.Conv_Ovf_I4_Un : OpCodes.Conv_Ovf_I4);
                     break;
+
                 case ProtoTypeCode.UInt64:
                     Emit(OpCodes.Conv_Ovf_I4_Un);
                     break;
+
                 default:
                     throw new InvalidOperationException("ConvertToInt32 not implemented for: " + typeCode);
             }

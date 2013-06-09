@@ -1,6 +1,9 @@
 ﻿#if !NO_GENERICS
+
 using System.Collections.Generic;
+
 #endif
+
 using ProtoBuf.Meta;
 using System.Collections;
 
@@ -18,9 +21,8 @@ namespace ProtoBuf
     /// <seealso cref="IExtensible"/>
     public abstract class Extensible : IExtensible
     {
-        // note: not marked ProtoContract - no local state, and can't 
+        // note: not marked ProtoContract - no local state, and can't
         // predict sub-classes
-
 
         private IExtension extensionObject;
 
@@ -28,6 +30,7 @@ namespace ProtoBuf
         {
             return GetExtensionObject(createIfMissing);
         }
+
         /// <summary>
         /// Retrieves the <see cref="IExtension">extension</see> object for the current
         /// instance, optionally creating it if it does not already exist.
@@ -65,6 +68,7 @@ namespace ProtoBuf
         }
 
 #if !NO_RUNTIME && !NO_GENERICS
+
         /// <summary>
         /// Appends the value as an additional (unexpected) data-field for the instance.
         /// Note that for non-repeated sub-objects, this equates to a merge operation;
@@ -99,6 +103,7 @@ namespace ProtoBuf
         {
             ExtensibleUtil.AppendExtendValue(RuntimeTypeModel.Default, instance, tag, format, value);
         }
+
         /// <summary>
         /// Queries an extensible object for an additional (unexpected) data-field for the instance.
         /// The value returned is the composed value after merging any duplicated content; if the
@@ -218,6 +223,7 @@ namespace ProtoBuf
         {
             return ExtensibleUtil.GetExtendedValues<TValue>(instance, tag, format, false, false);
         }
+
 #endif
 
         /// <summary>
@@ -247,6 +253,7 @@ namespace ProtoBuf
 
             return set;
         }
+
         /// <summary>
         /// Queries an extensible object for an additional (unexpected) data-field for the instance.
         /// Each occurrence of the field is yielded separately, making this usage suitable for "repeated"
@@ -281,6 +288,5 @@ namespace ProtoBuf
         {
             ExtensibleUtil.AppendExtendValue(model, instance, tag, format, value);
         }
-        
-    }   
+    }
 }

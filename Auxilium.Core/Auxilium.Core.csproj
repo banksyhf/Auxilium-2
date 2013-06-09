@@ -45,13 +45,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
-    <Compile Include="Compression\LZ4\LZ4Compressor32.cs" />
-    <Compile Include="Compression\LZ4\LZ4Decompressor32.cs" />
-    <Compile Include="Compression\LZ4\LZ4Util.cs" />
-    <Compile Include="Interfaces\IPacket.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Packets\IPacket.cs" />
     <Compile Include="Packets\ClientPackets\ClientMessage.cs" />
     <Compile Include="Packets\ClientPackets\Login.cs" />
     <Compile Include="Packets\ClientPackets\Register.cs" />
+    <Compile Include="Packets\KeepAlive.cs" />
+    <Compile Include="Packets\KeepAliveResponse.cs" />
+    <Compile Include="Packets\ServerPackets\Initialize.cs" />
     <Compile Include="Packets\ServerPackets\LoginResponse.cs" />
     <Compile Include="Packets\ServerPackets\Message.cs" />
     <Compile Include="Packets\ServerPackets\RegisterResponse.cs" />
@@ -143,7 +144,6 @@
     <Compile Include="ProtoBuf\WireType.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="UserState.cs" />
-    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

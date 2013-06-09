@@ -2,9 +2,10 @@
 
 namespace ProtoBuf.Serializers
 {
-    interface ISerializerProxy
+    internal interface ISerializerProxy
     {
         IProtoSerializer Serializer { get; }
     }
 }
+
 #endif

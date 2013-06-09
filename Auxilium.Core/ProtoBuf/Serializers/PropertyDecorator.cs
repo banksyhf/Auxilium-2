@@ -1,4 +1,5 @@
 ﻿#if !NO_RUNTIME
+
 using System;
 
 using ProtoBuf.Meta;
@@ -7,23 +8,29 @@ using ProtoBuf.Meta;
 using Type = IKVM.Reflection.Type;
 using IKVM.Reflection;
 #else
+
 using System.Reflection;
+
 #endif
-
-
 
 namespace ProtoBuf.Serializers
 {
-    sealed class PropertyDecorator : ProtoDecoratorBase
+    internal sealed class PropertyDecorator : ProtoDecoratorBase
     {
         public override Type ExpectedType { get { return forType; } }
+
         private readonly PropertyInfo property;
         private readonly Type forType;
+
         public override bool RequiresOldValue { get { return true; } }
+
         public override bool ReturnsValue { get { return false; } }
+
         private readonly bool readOptionsWriteValue;
         private readonly MethodInfo shadowSetter;
-        public PropertyDecorator(TypeModel model, Type forType, PropertyInfo property, IProtoSerializer tail) : base(tail)
+
+        public PropertyDecorator(TypeModel model, Type forType, PropertyInfo property, IProtoSerializer tail)
+            : base(tail)
         {
             Helpers.DebugAssert(forType != null);
             Helpers.DebugAssert(property != null);
@@ -32,9 +39,11 @@ namespace ProtoBuf.Serializers
             SanityCheck(model, property, tail, out readOptionsWriteValue, true, true);
             shadowSetter = GetShadowSetter(model, property);
         }
-        private static void SanityCheck(TypeModel model, PropertyInfo property, IProtoSerializer tail, out bool writeValue, bool nonPublic, bool allowInternal) {
-            if(property == null) throw new ArgumentNullException("property");
-            
+
+        private static void SanityCheck(TypeModel model, PropertyInfo property, IProtoSerializer tail, out bool writeValue, bool nonPublic, bool allowInternal)
+        {
+            if (property == null) throw new ArgumentNullException("property");
+
             writeValue = tail.ReturnsValue && (GetShadowSetter(model, property) != null || (property.CanWrite && Helpers.GetSetMethod(property, nonPublic, allowInternal) != null));
             if (!property.CanRead || Helpers.GetGetMethod(property, nonPublic, allowInternal) == null)
             {
@@ -46,12 +55,13 @@ namespace ProtoBuf.Serializers
                 throw new InvalidOperationException("Cannot apply changes to property " + property.DeclaringType.FullName + "." + property.Name);
             }
         }
-        static MethodInfo GetShadowSetter(TypeModel model, PropertyInfo property)
+
+        private static MethodInfo GetShadowSetter(TypeModel model, PropertyInfo property)
         {
-#if WINRT            
+#if WINRT
             MethodInfo method = Helpers.GetInstanceMethod(property.DeclaringType.GetTypeInfo(), "Set" + property.Name, new Type[] { property.PropertyType });
 #else
-            
+
 #if FEAT_IKVM
             Type reflectedType = property.DeclaringType;
 #else
@@ -62,13 +72,16 @@ namespace ProtoBuf.Serializers
             if (method == null || !method.IsPublic || method.ReturnType != model.MapType(typeof(void))) return null;
             return method;
         }
+
 #if !FEAT_IKVM
+
         public override void Write(object value, ProtoWriter dest)
         {
             Helpers.DebugAssert(value != null);
             value = property.GetValue(value, null);
-            if(value != null) Tail.Write(value, dest);
+            if (value != null) Tail.Write(value, dest);
         }
+
         public override object Read(object value, ProtoReader source)
         {
             Helpers.DebugAssert(value != null);
@@ -88,6 +101,7 @@ namespace ProtoBuf.Serializers
             }
             return null;
         }
+
 #endif
 
 #if FEAT_COMPILER
@@ -99,7 +113,6 @@ namespace ProtoBuf.Serializers
         }
         protected override void EmitRead(Compiler.CompilerContext ctx, Compiler.Local valueFrom)
         {
-
             bool writeValue;
             SanityCheck(ctx.Model, property, Tail, out writeValue, ctx.NonPublic, ctx.AllowInternal(property));
             if (ExpectedType.IsValueType && valueFrom == null)
@@ -118,7 +131,6 @@ namespace ProtoBuf.Serializers
                 ctx.LoadValue(property); // stack is: [old-addr]|old-value
             }
             ctx.ReadNullCheckedTail(property.PropertyType, Tail, null); // stack is [old-addr]|[new-value]
-            
             if (writeValue)
             {
                 // stack is old-addr|new-value
@@ -130,7 +142,7 @@ namespace ProtoBuf.Serializers
                     allDone = ctx.DefineLabel();
                     ctx.BranchIfFalse(@skip, true); // old-addr|new-value
                 }
-                
+
                 if (shadowSetter == null)
                 {
                     ctx.StoreValue(property);
@@ -149,7 +161,6 @@ namespace ProtoBuf.Serializers
 
                     ctx.MarkLabel(allDone);
                 }
-
             }
             else
             { // don't want return value; drop it if anything there
@@ -170,4 +181,5 @@ namespace ProtoBuf.Serializers
         }
     }
 }
+
 #endif

@@ -1,8 +1,8 @@
-﻿using System;
-
+﻿using ProtoBuf.Meta;
+using System;
 using System.IO;
 using System.Text;
-using ProtoBuf.Meta;
+
 #if MF
 using OverflowException = System.ApplicationException;
 #endif
@@ -15,14 +15,15 @@ namespace ProtoBuf
 {
     /// <summary>
     /// Represents an output stream for writing protobuf data.
-    /// 
+    ///
     /// Why is the API backwards (static methods with writer arguments)?
     /// See: http://marcgravell.blogspot.com/2010/03/last-will-be-first-and-first-will-be.html
     /// </summary>
     public sealed class ProtoWriter : IDisposable
     {
         private Stream dest;
-        TypeModel model;
+        private TypeModel model;
+
         /// <summary>
         /// Write an encapsulated sub-object, using the supplied unique key (reprasenting a type).
         /// </summary>
@@ -53,8 +54,9 @@ namespace ProtoBuf
                 TypeModel.ThrowUnexpectedType(value.GetType());
             }
             EndSubItem(token, writer);
-#endif 
+#endif
         }
+
         /// <summary>
         /// Write an encapsulated sub-object, using the supplied unique key (reprasenting a type) - but the
         /// caller is asserting that this relationship is non-recursive; no recursion check will be
@@ -73,6 +75,7 @@ namespace ProtoBuf
             writer.model.Serialize(key, value, writer);
             EndSubItem(token, writer);
         }
+
         internal static void WriteObject(object value, int key, ProtoWriter writer, PrefixStyle style, int fieldNumber)
         {
 #if FEAT_IKVM
@@ -91,11 +94,13 @@ namespace ProtoBuf
                     writer.fieldNumber = fieldNumber;
                     if (fieldNumber > 0) WriteHeaderCore(fieldNumber, WireType.String, writer);
                     break;
+
                 case PrefixStyle.Fixed32:
                 case PrefixStyle.Fixed32BigEndian:
                     writer.fieldNumber = 0;
                     writer.wireType = WireType.Fixed32;
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException("style");
             }
@@ -112,30 +117,34 @@ namespace ProtoBuf
                 writer.model.Serialize(key, value, writer);
             }
             EndSubItem(token, writer, style);
-#endif       
+#endif
         }
 
         internal int GetTypeKey(ref Type type)
         {
             return model.GetKey(ref type);
         }
-        
+
         private readonly NetObjectCache netCache = new NetObjectCache();
+
         internal NetObjectCache NetCache
         {
-            get { return netCache;}
+            get { return netCache; }
         }
 
         private int fieldNumber, flushLock;
-        WireType wireType;
+        private WireType wireType;
+
         internal WireType WireType { get { return wireType; } }
+
         /// <summary>
         /// Writes a field-header, indicating the format of the next data we plan to write.
         /// </summary>
-        public static void WriteFieldHeader(int fieldNumber, WireType wireType, ProtoWriter writer) {
+        public static void WriteFieldHeader(int fieldNumber, WireType wireType, ProtoWriter writer)
+        {
             if (writer.wireType != WireType.None) throw new InvalidOperationException("Cannot write a " + wireType
                 + " header until the " + writer.wireType + " data has been written");
-            if(fieldNumber < 0) throw new ArgumentOutOfRangeException("fieldNumber");
+            if (fieldNumber < 0) throw new ArgumentOutOfRangeException("fieldNumber");
 #if DEBUG
             switch (wireType)
             {   // validate requested header-type
@@ -149,10 +158,11 @@ namespace ProtoBuf
                 case WireType.None:
                 case WireType.EndGroup:
                 default:
-                    throw new ArgumentException("Invalid wire-type: " + wireType, "wireType");                
+                    throw new ArgumentException("Invalid wire-type: " + wireType, "wireType");
             }
 #endif
-            if (writer.packedFieldNumber == 0) {
+            if (writer.packedFieldNumber == 0)
+            {
                 writer.fieldNumber = fieldNumber;
                 writer.wireType = wireType;
                 WriteHeaderCore(fieldNumber, wireType, writer);
@@ -177,6 +187,7 @@ namespace ProtoBuf
                 throw new InvalidOperationException("Field mismatch during packed encoding; expected " + writer.packedFieldNumber + " but received " + fieldNumber);
             }
         }
+
         internal static void WriteHeaderCore(int fieldNumber, WireType wireType, ProtoWriter writer)
         {
             uint header = (((uint)fieldNumber) << 3)
@@ -191,6 +202,7 @@ namespace ProtoBuf
         {
             ProtoWriter.WriteBytes(data, 0, data.Length, writer);
         }
+
         /// <summary>
         /// Writes a byte-array to the stream; supported wire-types: String
         /// </summary>
@@ -220,7 +232,7 @@ namespace ProtoBuf
                     // now just write directly to the underlying stream
                     writer.dest.Write(data, offset, length);
                     writer.position += length; // since we've flushed offset etc is 0, and remains
-                                        // zero since we're writing directly to the stream
+                    // zero since we're writing directly to the stream
                     return;
             }
             throw CreateException(writer);
@@ -229,21 +241,22 @@ namespace ProtoBuf
             Helpers.BlockCopy(data, offset, writer.ioBuffer, writer.ioIndex, length);
             IncrementedAndReset(length, writer);
         }
+
         private static void CopyRawFromStream(Stream source, ProtoWriter writer)
         {
             byte[] buffer = writer.ioBuffer;
             int space = buffer.Length - writer.ioIndex, bytesRead = 1; // 1 here to spoof case where already full
-            
-            // try filling the buffer first   
+
+            // try filling the buffer first
             while (space > 0 && (bytesRead = source.Read(buffer, writer.ioIndex, space)) > 0)
             {
                 writer.ioIndex += bytesRead;
                 writer.position += bytesRead;
-                space -= bytesRead;                
+                space -= bytesRead;
             }
             if (bytesRead <= 0) return; // all done using just the buffer; stream exhausted
 
-            // at this point the stream still has data, but buffer is full; 
+            // at this point the stream still has data, but buffer is full;
             if (writer.flushLock == 0)
             {
                 // flush the buffer and write to the underlying stream instead
@@ -263,14 +276,14 @@ namespace ProtoBuf
                     // (128 is the minimum; there may actually be much
                     // more space than this in the buffer)
                     DemandSpace(128, writer);
-                    if((bytesRead = source.Read(writer.ioBuffer, writer.ioIndex,
+                    if ((bytesRead = source.Read(writer.ioBuffer, writer.ioIndex,
                         writer.ioBuffer.Length - writer.ioIndex)) <= 0) break;
                     writer.position += bytesRead;
                     writer.ioIndex += bytesRead;
                 } while (true);
             }
-
         }
+
         private static void IncrementedAndReset(int length, ProtoWriter writer)
         {
             Helpers.DebugAssert(length >= 0);
@@ -278,8 +291,10 @@ namespace ProtoBuf
             writer.position += length;
             writer.wireType = WireType.None;
         }
-        int depth = 0;
-        const int RecursionCheckDepth = 25;
+
+        private int depth = 0;
+        private const int RecursionCheckDepth = 25;
+
         /// <summary>
         /// Indicates the start of a nested record.
         /// </summary>
@@ -291,7 +306,8 @@ namespace ProtoBuf
             return StartSubItem(instance, writer, false);
         }
 
-        MutableList recursionStack;
+        private MutableList recursionStack;
+
         private void CheckRecursionStackAndPush(object instance)
         {
             int hitLevel;
@@ -300,7 +316,7 @@ namespace ProtoBuf
             {
 #if DEBUG
                 Helpers.DebugWriteLine("Stack:");
-                foreach(object obj in recursionStack)
+                foreach (object obj in recursionStack)
                 {
                     Helpers.DebugWriteLine(obj == null ? "<null>" : obj.ToString());
                 }
@@ -310,7 +326,11 @@ namespace ProtoBuf
             }
             recursionStack.Add(instance);
         }
-        private void PopRecursionStack() { recursionStack.RemoveLast(); }
+
+        private void PopRecursionStack()
+        {
+            recursionStack.RemoveLast();
+        }
 
         private static SubItemToken StartSubItem(object instance, ProtoWriter writer, bool allowFixed)
         {
@@ -318,7 +338,7 @@ namespace ProtoBuf
             {
                 writer.CheckRecursionStackAndPush(instance);
             }
-            if(writer.packedFieldNumber != 0) throw new InvalidOperationException("Cannot begin a sub-item while performing packed encoding");
+            if (writer.packedFieldNumber != 0) throw new InvalidOperationException("Cannot begin a sub-item while performing packed encoding");
             switch (writer.wireType)
             {
                 case WireType.StartGroup:
@@ -326,7 +346,7 @@ namespace ProtoBuf
                     return new SubItemToken(-writer.fieldNumber);
                 case WireType.String:
 #if DEBUG
-                    if(writer.model != null && writer.model.ForwardsOnly)
+                    if (writer.model != null && writer.model.ForwardsOnly)
                     {
                         throw new ProtoException("Should not be buffering data");
                     }
@@ -359,6 +379,7 @@ namespace ProtoBuf
         {
             EndSubItem(token, writer, PrefixStyle.Base128);
         }
+
         private static void EndSubItem(SubItemToken token, ProtoWriter writer, PrefixStyle style)
         {
             if (writer.wireType != WireType.None) { throw CreateException(writer); }
@@ -378,12 +399,13 @@ namespace ProtoBuf
 
             // so we're backfilling the length into an existing sequence
             int len;
-            switch(style)
+            switch (style)
             {
                 case PrefixStyle.Fixed32:
                     len = (int)((writer.ioIndex - value) - 4);
                     ProtoWriter.WriteInt32ToBuffer(len, writer.ioBuffer, value);
                     break;
+
                 case PrefixStyle.Fixed32BigEndian:
                     len = (int)((writer.ioIndex - value) - 4);
                     byte[] buffer = writer.ioBuffer;
@@ -396,6 +418,7 @@ namespace ProtoBuf
                     buffer[value + 1] = buffer[value + 2];
                     buffer[value + 2] = b;
                     break;
+
                 case PrefixStyle.Base128:
                     // string - complicated because we only reserved one byte;
                     // if the prefix turns out to need more than this then
@@ -423,6 +446,7 @@ namespace ProtoBuf
                         writer.ioIndex += offset;
                     }
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException("style");
             }
@@ -432,7 +456,6 @@ namespace ProtoBuf
             {
                 ProtoWriter.Flush(writer);
             }
-            
         }
 
         /// <summary>
@@ -453,18 +476,20 @@ namespace ProtoBuf
             if (context == null) { context = SerializationContext.Default; }
             else { context.Freeze(); }
             this.context = context;
-            
         }
 
         private readonly SerializationContext context;
+
         /// <summary>
         /// Addition information about this serialization operation.
         /// </summary>
         public SerializationContext Context { get { return context; } }
+
         void IDisposable.Dispose()
         {
             Dispose();
         }
+
         private void Dispose()
         {   // importantly, this does **not** own the stream, and does not dispose it
             if (dest != null)
@@ -478,8 +503,14 @@ namespace ProtoBuf
 
         private byte[] ioBuffer;
         private int ioIndex;
-        internal static int GetPosition(ProtoWriter writer) { return writer.position; }
+
+        internal static int GetPosition(ProtoWriter writer)
+        {
+            return writer.position;
+        }
+
         private int position;
+
         private static void DemandSpace(int required, ProtoWriter writer)
         {
             // check for enough space
@@ -494,6 +525,7 @@ namespace ProtoBuf
                 BufferPool.ResizeAndFlushLeft(ref writer.ioBuffer, required + writer.ioIndex, 0, writer.ioIndex);
             }
         }
+
         /// <summary>
         /// Flushes data to the underlying stream, and releases any resources. The underlying stream is *not* disposed
         /// by this operation.
@@ -525,7 +557,7 @@ namespace ProtoBuf
             if (writer.flushLock == 0 && writer.ioIndex != 0)
             {
                 writer.dest.Write(writer.ioBuffer, 0, writer.ioIndex);
-                writer.ioIndex = 0;                
+                writer.ioIndex = 0;
             }
         }
 
@@ -536,24 +568,27 @@ namespace ProtoBuf
         {
             DemandSpace(5, writer);
             int count = 0;
-            do {
+            do
+            {
                 writer.ioBuffer[writer.ioIndex++] = (byte)((value & 0x7F) | 0x80);
                 count++;
             } while ((value >>= 7) != 0);
             writer.ioBuffer[writer.ioIndex - 1] &= 0x7F;
             writer.position += count;
         }
- 
-        static readonly UTF8Encoding encoding = new UTF8Encoding();
+
+        private static readonly UTF8Encoding encoding = new UTF8Encoding();
 
         internal static uint Zig(int value)
-        {        
+        {
             return (uint)((value << 1) ^ (value >> 31));
         }
+
         internal static ulong Zig(long value)
         {
             return (ulong)((value << 1) ^ (value >> 63));
         }
+
         private static void WriteUInt64Variant(ulong value, ProtoWriter writer)
         {
             DemandSpace(10, writer);
@@ -566,6 +601,7 @@ namespace ProtoBuf
             writer.ioBuffer[writer.ioIndex - 1] &= 0x7F;
             writer.position += count;
         }
+
         /// <summary>
         /// Writes a string to the stream; supported wire-types: String
         /// </summary>
@@ -595,6 +631,7 @@ namespace ProtoBuf
 #endif
             IncrementedAndReset(actual, writer);
         }
+
         /// <summary>
         /// Writes an unsigned 64-bit integer to the stream; supported wire-types: Variant, Fixed32, Fixed64
         /// </summary>
@@ -605,13 +642,16 @@ namespace ProtoBuf
                 case WireType.Fixed64:
                     ProtoWriter.WriteInt64((long)value, writer);
                     return;
+
                 case WireType.Variant:
                     WriteUInt64Variant(value, writer);
                     writer.wireType = WireType.None;
                     return;
+
                 case WireType.Fixed32:
                     checked { ProtoWriter.WriteUInt32((uint)value, writer); }
                     return;
+
                 default:
                     throw CreateException(writer);
             }
@@ -640,10 +680,12 @@ namespace ProtoBuf
                     buffer[index + 7] = (byte)(value >> 56);
                     IncrementedAndReset(8, writer);
                     return;
+
                 case WireType.SignedVariant:
                     WriteUInt64Variant(Zig(value), writer);
                     writer.wireType = WireType.None;
                     return;
+
                 case WireType.Variant:
                     if (value >= 0)
                     {
@@ -668,9 +710,11 @@ namespace ProtoBuf
                         IncrementedAndReset(10, writer);
                     }
                     return;
+
                 case WireType.Fixed32:
                     checked { WriteInt32((int)value, writer); }
                     return;
+
                 default:
                     throw CreateException(writer);
             }
@@ -686,18 +730,20 @@ namespace ProtoBuf
                 case WireType.Fixed32:
                     ProtoWriter.WriteInt32((int)value, writer);
                     return;
+
                 case WireType.Fixed64:
                     ProtoWriter.WriteInt64((int)value, writer);
                     return;
+
                 case WireType.Variant:
                     WriteUInt32Variant(value, writer);
                     writer.wireType = WireType.None;
                     return;
+
                 default:
                     throw CreateException(writer);
             }
         }
-
 
         /// <summary>
         /// Writes a signed 16-bit integer to the stream; supported wire-types: Variant, Fixed32, Fixed64, SignedVariant
@@ -706,6 +752,7 @@ namespace ProtoBuf
         {
             ProtoWriter.WriteInt32(value, writer);
         }
+
         /// <summary>
         /// Writes an unsigned 16-bit integer to the stream; supported wire-types: Variant, Fixed32, Fixed64
         /// </summary>
@@ -713,6 +760,7 @@ namespace ProtoBuf
         {
             ProtoWriter.WriteUInt32(value, writer);
         }
+
         /// <summary>
         /// Writes an unsigned 8-bit integer to the stream; supported wire-types: Variant, Fixed32, Fixed64
         /// </summary>
@@ -720,6 +768,7 @@ namespace ProtoBuf
         {
             ProtoWriter.WriteUInt32(value, writer);
         }
+
         /// <summary>
         /// Writes a signed 8-bit integer to the stream; supported wire-types: Variant, Fixed32, Fixed64, SignedVariant
         /// </summary>
@@ -727,6 +776,7 @@ namespace ProtoBuf
         {
             ProtoWriter.WriteInt32(value, writer);
         }
+
         private static void WriteInt32ToBuffer(int value, byte[] buffer, int index)
         {
             buffer[index] = (byte)value;
@@ -746,9 +796,10 @@ namespace ProtoBuf
             {
                 case WireType.Fixed32:
                     DemandSpace(4, writer);
-                    WriteInt32ToBuffer(value, writer.ioBuffer, writer.ioIndex);                    
+                    WriteInt32ToBuffer(value, writer.ioBuffer, writer.ioIndex);
                     IncrementedAndReset(4, writer);
                     return;
+
                 case WireType.Fixed64:
                     DemandSpace(8, writer);
                     buffer = writer.ioBuffer;
@@ -761,10 +812,12 @@ namespace ProtoBuf
                         buffer[index + 6] = buffer[index + 7] = 0;
                     IncrementedAndReset(8, writer);
                     return;
+
                 case WireType.SignedVariant:
                     WriteUInt32Variant(Zig(value), writer);
                     writer.wireType = WireType.None;
                     return;
+
                 case WireType.Variant:
                     if (value >= 0)
                     {
@@ -787,20 +840,21 @@ namespace ProtoBuf
                         IncrementedAndReset(10, writer);
                     }
                     return;
+
                 default:
                     throw CreateException(writer);
             }
-            
         }
+
         /// <summary>
         /// Writes a double-precision number to the stream; supported wire-types: Fixed32, Fixed64
         /// </summary>
         public
 #if !FEAT_SAFE
-            unsafe
+ unsafe
 #endif
 
-                static void WriteDouble(double value, ProtoWriter writer)
+ static void WriteDouble(double value, ProtoWriter writer)
         {
             switch (writer.wireType)
             {
@@ -813,6 +867,7 @@ namespace ProtoBuf
                     }
                     ProtoWriter.WriteSingle(f, writer);
                     return;
+
                 case WireType.Fixed64:
 #if FEAT_SAFE
                     ProtoWriter.WriteInt64(BitConverter.ToInt64(BitConverter.GetBytes(value), 0), writer);
@@ -820,18 +875,20 @@ namespace ProtoBuf
                     ProtoWriter.WriteInt64(*(long*)&value, writer);
 #endif
                     return;
+
                 default:
                     throw CreateException(writer);
             }
         }
+
         /// <summary>
         /// Writes a single-precision number to the stream; supported wire-types: Fixed32, Fixed64
         /// </summary>
-        public 
+        public
 #if !FEAT_SAFE
-            unsafe
+ unsafe
 #endif
-            static void WriteSingle(float value, ProtoWriter writer)
+ static void WriteSingle(float value, ProtoWriter writer)
         {
             switch (writer.wireType)
             {
@@ -842,13 +899,16 @@ namespace ProtoBuf
                     ProtoWriter.WriteInt32(*(int*)&value, writer);
 #endif
                     return;
+
                 case WireType.Fixed64:
                     ProtoWriter.WriteDouble((double)value, writer);
                     return;
+
                 default:
                     throw CreateException(writer);
             }
         }
+
         /// <summary>
         /// Throws an exception indicating that the given enum cannot be mapped to a serialized value.
         /// </summary>
@@ -857,6 +917,7 @@ namespace ProtoBuf
             string rhs = enumValue == null ? "<null>" : (enumValue.GetType().FullName + "." + enumValue.ToString());
             throw new ProtoException("No wire-value is mapped to the enum " + rhs);
         }
+
         // general purpose serialization exception message
         internal static Exception CreateException(ProtoWriter writer)
         {
@@ -879,7 +940,7 @@ namespace ProtoBuf
             if (instance == null) throw new ArgumentNullException("instance");
             // we expect the writer to be raw here; the extension data will have the
             // header detail, so we'll copy it implicitly
-            if(writer.wireType != WireType.None) throw CreateException(writer);
+            if (writer.wireType != WireType.None) throw CreateException(writer);
 
             IExtension extn = instance.GetExtensionObject(false);
             if (extn != null)
@@ -895,8 +956,8 @@ namespace ProtoBuf
             }
         }
 
-
         private int packedFieldNumber;
+
         /// <summary>
         /// Used for packed encoding; indicates that the next field should be skipped rather than
         /// a field header written. Note that the field number must match, else an exception is thrown
@@ -913,6 +974,7 @@ namespace ProtoBuf
         {
             return TypeModel.SerializeType(model, type);
         }
+
         /// <summary>
         /// Specifies a known root object to use during reference-tracked serialization
         /// </summary>

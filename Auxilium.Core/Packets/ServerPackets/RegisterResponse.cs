@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ProtoBuf;
-using Auxilium.Core.Interfaces;
+﻿using ProtoBuf;
 
 namespace Auxilium.Core.Packets.ServerPackets
 {
     [ProtoContract]
-    [ProtoInclude(1, typeof(IPacket))]
     public class RegisterResponse : IPacket
     {
         [ProtoMember(1)]
@@ -17,18 +11,18 @@ namespace Auxilium.Core.Packets.ServerPackets
         [ProtoMember(2)]
         public string Message { get; private set; }
 
-        public RegisterResponse() { }
+        [ProtoMember(3)]
+        public int ErrorCode { get; set; }
 
-        public RegisterResponse(bool successful)
+        public RegisterResponse()
         {
-            Successful = successful;
-            Message = null;
         }
 
-        public RegisterResponse(bool successful, string message)
+        public RegisterResponse(bool successful, string message, int errorCode)
         {
             Successful = successful;
             Message = message;
+            ErrorCode = errorCode;
         }
 
         public void Execute(Client client)

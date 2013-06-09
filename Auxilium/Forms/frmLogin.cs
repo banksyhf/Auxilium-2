@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Auxilium.Core;
+﻿using Auxilium.Core;
 using Auxilium.Core.Packets.ClientPackets;
 using Auxilium.Core.Packets.ServerPackets;
+using System;
+using System.Windows.Forms;
 
 namespace Auxilium.Forms
 {
@@ -24,7 +18,7 @@ namespace Auxilium.Forms
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            new Login(txtUsername.Text, txtPassword.Text).Execute(Client);
+            new Login(txtUsername.Text, txtPassword.Text, Client.HashAlgorithm).Execute(Client);
         }
 
         private void btnReturn_Click(object sender, EventArgs e)
@@ -34,7 +28,7 @@ namespace Auxilium.Forms
 
         private void btnRegister_Click(object sender, EventArgs e)
         {
-            new Register(regUsername.Text, regPassword.Text, regEmail.Text).Execute(Client);
+            new Register(regUsername.Text, regPassword.Text, regEmail.Text, Client.HashAlgorithm).Execute(Client);
         }
 
         private void btnCreate_Click(object sender, EventArgs e)
@@ -53,7 +47,7 @@ namespace Auxilium.Forms
                 }
 
                 if (login.Message != null)
-                    MessageBox.Show(login.Message);
+                    MessageBox.Show(login.Message, "", MessageBoxButtons.OK, (MessageBoxIcon)login.ErrorCode);
             }));
         }
 
@@ -64,9 +58,9 @@ namespace Auxilium.Forms
                 if (register.Successful)
                     tabMain.SelectedIndex = 0;
 
-                MessageBox.Show(register.Message);
+                if (register.Message != null)
+                    MessageBox.Show(register.Message, "", MessageBoxButtons.OK, (MessageBoxIcon)register.ErrorCode);
             }));
-
         }
     }
 }

@@ -1,10 +1,9 @@
 ﻿using ProtoBuf;
-using System;
 
-namespace Auxilium.Core.Interfaces
+namespace Auxilium.Core.Packets
 {
     [ProtoContract]
-    public interface IPacket 
+    public interface IPacket
     {
         void Execute(Client client);
     }

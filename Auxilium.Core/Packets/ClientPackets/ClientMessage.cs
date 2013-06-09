@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ProtoBuf;
-using Auxilium.Core.Interfaces;
+﻿using ProtoBuf;
 
 namespace Auxilium.Core.Packets.ClientPackets
 {
@@ -14,7 +9,9 @@ namespace Auxilium.Core.Packets.ClientPackets
         [ProtoMember(1)]
         public string Message { get; private set; }
 
-        public ClientMessage() { }
+        public ClientMessage()
+        {
+        }
 
         public ClientMessage(string message)
         {

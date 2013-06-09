@@ -1,16 +1,18 @@
-﻿
-using ProtoBuf.Meta;
+﻿using ProtoBuf.Meta;
 using System;
 using System.IO;
+
 #if !NO_GENERICS
+
 using System.Collections.Generic;
+
 #endif
 
 #if FEAT_IKVM
 using Type = IKVM.Reflection.Type;
 using IKVM.Reflection;
 #else
-using System.Reflection;
+
 #endif
 
 namespace ProtoBuf
@@ -25,18 +27,19 @@ namespace ProtoBuf
     /// extensible, allowing a type to be deserialized / merged even if some data is
     /// not recognised.
     /// </remarks>
-    public 
+    public
 #if FX11
     sealed
 #else
-    static
+ static
 #endif
-        class Serializer
+ class Serializer
     {
 #if FX11
         private Serializer() { } // not a static class for C# 1.2 reasons
 #endif
 #if !NO_RUNTIME && !NO_GENERICS
+
         /// <summary>
         /// Suggest a .proto definition for the given type
         /// </summary>
@@ -46,6 +49,7 @@ namespace ProtoBuf
         {
             return RuntimeTypeModel.Default.GetSchema(RuntimeTypeModel.Default.MapType(typeof(T)));
         }
+
         /// <summary>
         /// Create a deep clone of the supplied instance; any sub-items are also cloned.
         /// </summary>
@@ -53,6 +57,7 @@ namespace ProtoBuf
         {
             return instance == null ? instance : (T)RuntimeTypeModel.Default.DeepClone(instance);
         }
+
         /// <summary>
         /// Applies a protocol-buffer stream to an existing instance.
         /// </summary>
@@ -66,6 +71,7 @@ namespace ProtoBuf
         {
             return (T)RuntimeTypeModel.Default.Deserialize(source, instance, typeof(T));
         }
+
         /// <summary>
         /// Creates a new instance from a protocol-buffer stream
         /// </summary>
@@ -74,8 +80,9 @@ namespace ProtoBuf
         /// <returns>A new, initialized instance.</returns>
         public static T Deserialize<T>(Stream source)
         {
-            return (T) RuntimeTypeModel.Default.Deserialize(source, null, typeof(T));
+            return (T)RuntimeTypeModel.Default.Deserialize(source, null, typeof(T));
         }
+
         /// <summary>
         /// Writes a protocol-buffer representation of the given instance to the supplied stream.
         /// </summary>
@@ -83,10 +90,12 @@ namespace ProtoBuf
         /// <param name="destination">The destination stream to write to.</param>
         public static void Serialize<T>(Stream destination, T instance)
         {
-            if(instance != null) {
+            if (instance != null)
+            {
                 RuntimeTypeModel.Default.Serialize(destination, instance);
             }
         }
+
         /// <summary>
         /// Serializes a given instance and deserializes it as a different type;
         /// this can be used to translate between wire-compatible objects (where
@@ -98,7 +107,7 @@ namespace ProtoBuf
         /// <typeparam name="TTo">The type of the new object to be created.</typeparam>
         /// <param name="instance">The existing instance to use as a template.</param>
         /// <returns>A new instane of type TNewType, with the data from TOldType.</returns>
-        public static TTo ChangeType<TFrom,TTo>(TFrom instance)
+        public static TTo ChangeType<TFrom, TTo>(TFrom instance)
         {
             using (MemoryStream ms = new MemoryStream())
             {
@@ -107,6 +116,7 @@ namespace ProtoBuf
                 return Deserialize<TTo>(ms);
             }
         }
+
 #if PLAT_BINARYFORMATTER && !(WINRT || PHONE8)
         /// <summary>
         /// Writes a protocol-buffer representation of the given instance to the supplied SerializationInfo.
@@ -229,11 +239,12 @@ namespace ProtoBuf
 #endif
 
 #if !NO_GENERICS
+
         /// <summary>
         /// Precompiles the serializer for a given type.
         /// </summary>
         public static void PrepareSerializer<T>()
-        { 
+        {
 #if FEAT_COMPILER
             RuntimeTypeModel model = RuntimeTypeModel.Default;
             model[model.MapType(typeof(T))].CompileInPlace();
@@ -255,6 +266,7 @@ namespace ProtoBuf
 #endif
         }
 #endif
+
         /// <summary>
         /// Reads a sequence of consecutive length-prefixed items from a stream, using
         /// either base-128 or fixed-length prefixes. Base-128 prefixes with a tag
@@ -351,7 +363,9 @@ namespace ProtoBuf
             RuntimeTypeModel model = RuntimeTypeModel.Default;
             model.SerializeWithLengthPrefix(destination, instance, model.MapType(typeof(T)), style, fieldNumber);
         }
+
 #endif
+
         /// <summary>Indicates the number of bytes expected for the next message.</summary>
         /// <param name="source">The stream containing the data to investigate for a length.</param>
         /// <param name="style">The algorithm used to encode the length.</param>
@@ -378,16 +392,17 @@ namespace ProtoBuf
                 return TryReadLengthPrefix(source, style, out length);
             }
         }
+
 #endif
+
         /// <summary>
         /// The field number that is used as a default when serializing/deserializing a list of objects.
         /// The data is treated as repeated message with field number 1.
         /// </summary>
         public const int ListItemTag = 1;
 
-
-
 #if !NO_RUNTIME
+
         /// <summary>
         /// Provides non-generic access to the default serializer.
         /// </summary>
@@ -395,13 +410,14 @@ namespace ProtoBuf
 #if FX11
     sealed
 #else
-    static
+ static
 #endif
-            class NonGeneric
+ class NonGeneric
         {
 #if FX11
             private NonGeneric() { } // not a static class for C# 1.2 reasons
 #endif
+
             /// <summary>
             /// Create a deep clone of the supplied instance; any sub-items are also cloned.
             /// </summary>
@@ -459,6 +475,7 @@ namespace ProtoBuf
                 RuntimeTypeModel model = RuntimeTypeModel.Default;
                 model.SerializeWithLengthPrefix(destination, instance, model.MapType(instance.GetType()), style, fieldNumber);
             }
+
             /// <summary>
             /// Applies a protocol-buffer stream to an existing instance (or null), using length-prefixed
             /// data - useful with network IO.
@@ -475,6 +492,7 @@ namespace ProtoBuf
                 value = RuntimeTypeModel.Default.DeserializeWithLengthPrefix(source, null, null, style, 0, resolver);
                 return value != null;
             }
+
             /// <summary>
             /// Indicates whether the supplied type is explicitly modelled by the model
             /// </summary>
@@ -482,9 +500,7 @@ namespace ProtoBuf
             {
                 return RuntimeTypeModel.Default.IsDefined(type);
             }
-
         }
-
 
         /// <summary>
         /// Global switches that change the behavior of protobuf-net
@@ -493,13 +509,14 @@ namespace ProtoBuf
 #if FX11
     sealed
 #else
-    static
+ static
 #endif
-            class GlobalOptions
+ class GlobalOptions
         {
 #if FX11
             private GlobalOptions() { } // not a static class for C# 1.2 reasons
 #endif
+
             /// <summary>
             /// <see cref="RuntimeTypeModel.InferTagFromNameDefault"/>
             /// </summary>
@@ -510,7 +527,9 @@ namespace ProtoBuf
                 set { RuntimeTypeModel.Default.InferTagFromNameDefault = value; }
             }
         }
+
 #endif
+
         /// <summary>
         /// Maps a field-number to a type
         /// </summary>

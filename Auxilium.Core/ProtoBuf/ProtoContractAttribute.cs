@@ -13,6 +13,7 @@ namespace ProtoBuf
         /// Gets or sets the defined name of the type.
         /// </summary>
         public string Name { get { return name; } set { name = value; } }
+
         private string name;
 
         /// <summary>
@@ -28,6 +29,7 @@ namespace ProtoBuf
                 implicitFirstTag = value;
             }
         }
+
         private int implicitFirstTag;
 
         /// <summary>
@@ -48,15 +50,14 @@ namespace ProtoBuf
             set { SetFlag(OPTIONS_IgnoreListHandling, value); }
         }
 
-
         /// <summary>
         /// Gets or sets the mechanism used to automatically infer field tags
         /// for members. This option should be used in advanced scenarios only.
         /// Please review the important notes against the ImplicitFields enumeration.
         /// </summary>
         public ImplicitFields ImplicitFields { get { return implicitFields; } set { implicitFields = value; } }
-        private ImplicitFields implicitFields;
 
+        private ImplicitFields implicitFields;
 
         /// <summary>
         /// Enables/disables automatic tag generation based on the existing name / order
@@ -70,7 +71,8 @@ namespace ProtoBuf
         public bool InferTagFromName
         {
             get { return HasFlag(OPTIONS_InferTagFromName); }
-            set {
+            set
+            {
                 SetFlag(OPTIONS_InferTagFromName, value);
                 SetFlag(OPTIONS_InferTagFromNameHasValue, true);
             }
@@ -90,7 +92,7 @@ namespace ProtoBuf
         /// Specifies an offset to apply to [DataMember(Order=...)] markers;
         /// this is useful when working with mex-generated classes that have
         /// a different origin (usually 1 vs 0) than the original data-contract.
-        /// 
+        ///
         /// This value is added to the Order of each member.
         /// </summary>
         public int DataMemberOffset
@@ -98,7 +100,6 @@ namespace ProtoBuf
             get { return dataMemberOffset; }
             set { dataMemberOffset = value; }
         }
-
 
         /// <summary>
         /// If true, the constructor for the type is bypassed during deserialization, meaning any field initializers
@@ -117,12 +118,17 @@ namespace ProtoBuf
         public bool AsReferenceDefault
         {
             get { return HasFlag(OPTIONS_AsReferenceDefault); }
-            set {
+            set
+            {
                 SetFlag(OPTIONS_AsReferenceDefault, value);
             }
         }
 
-        private bool HasFlag(byte flag) { return (flags & flag) == flag; }
+        private bool HasFlag(byte flag)
+        {
+            return (flags & flag) == flag;
+        }
+
         private void SetFlag(byte flag, bool value)
         {
             if (value) flags |= flag;

@@ -80,7 +80,6 @@ namespace ProtoBuf.ServiceModel
 
             isList = false;
             return -1;
-            
         }
         /// <summary>
         /// Ends an object in the output

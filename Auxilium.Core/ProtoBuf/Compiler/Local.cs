@@ -38,10 +38,9 @@ namespace ProtoBuf.Compiler
                 // only *actually* dispose if this is context-bound; note that non-bound
                 // objects are cheekily re-used, and *must* be left intact agter a "using" etc
                 ctx.ReleaseToPool(value);
-                value = null; 
+                value = null;
                 ctx = null;
-            }            
-            
+            }
         }
         private Local(LocalBuilder value, Type type)
         {
@@ -61,10 +60,8 @@ namespace ProtoBuf.Compiler
             if((object)this == (object)other) return true;
 
             object ourVal = value; // use prop to ensure obj-disposed etc
-            return other != null && ourVal == (object)(other.value); 
+            return other != null && ourVal == (object)(other.value);
         }
     }
-
-
 }
 #endif

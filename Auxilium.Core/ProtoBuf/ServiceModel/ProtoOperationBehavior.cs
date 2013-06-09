@@ -24,7 +24,6 @@ namespace ProtoBuf.ServiceModel
                 if (value == null) throw new ArgumentNullException("Model");
                 model = value;
             }
-
         }
         /// <summary>
         /// Create a new ProtoOperationBehavior instance

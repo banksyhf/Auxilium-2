@@ -1,25 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
-using Auxilium.Core;
-using Auxilium.Core.Interfaces;
-using Auxilium.Forms;
+﻿using Auxilium.Core;
+using Auxilium.Core.Packets;
+using Auxilium.Core.Packets.ClientPackets;
 using Auxilium.Core.Packets.ServerPackets;
+using Auxilium.Forms;
+using System;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Windows.Forms;
 
 namespace Auxilium
 {
-    static class Program
+    internal static class Program
     {
+        private static Client Client { get; set; }
 
-        static Client Client { get; set; }
+        private static frmMain MainForm { get; set; }
 
-        static frmMain MainForm { get; set; }
-
-        static frmLogin LoginForm { get; set; }
+        private static frmLogin LoginForm { get; set; }
 
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             Connect();
             Application.EnableVisualStyles();
@@ -29,19 +29,27 @@ namespace Auxilium
             Application.Run();
         }
 
-        static void Connect()
+        private static void Connect()
         {
             if (Client == null || !Client.Connected)
-                Client = new Client() { BufferSize = 8192 };
+                Client = new Client(8192);
 
-            Client.ClientState += new Core.Client.ClientStateEventHandler(ClientState);
-            Client.ClientRead += new Core.Client.ClientReadEventHandler(ClientRead);
-            Client.ClientFail += new Core.Client.ClientFailEventHandler(ClientFail);
+            Client.AddTypesToSerializer(typeof(IPacket), new Type[]
+            {
+                typeof(Initialize),
+                typeof(Login), typeof(LoginResponse),
+                typeof(Register), typeof(RegisterResponse),
+                typeof(ClientMessage), typeof(BroadcastMessage)
+            });
+
+            Client.ClientState += ClientState;
+            Client.ClientRead += ClientRead;
+            Client.ClientFail += ClientFail;
 
             Client.Connect("127.0.0.1", 35);
         }
-        
-        static void ClientState(Client s, bool connected)
+
+        private static void ClientState(Client client, bool connected)
         {
             if (connected)
             {
@@ -53,17 +61,19 @@ namespace Auxilium
             }
         }
 
-        static void ClientFail(Client s)
+        private static void ClientFail(Client client)
         {
-
         }
 
-        static void ClientRead(Client s, IPacket packet)
+        private static void ClientRead(Client client, IPacket packet)
         {
-
             Type type = packet.GetType();
 
-            if (type == typeof(LoginResponse))
+            if (type == typeof(Initialize))
+            {
+                client.HashAlgorithm = HashAlgorithm.Create(((Initialize)packet).HashAlgorithm);
+            }
+            else if (type == typeof(LoginResponse))
             {
                 GetForm<frmLogin>().HandleLoginResponse((LoginResponse)packet);
             }
@@ -71,10 +81,9 @@ namespace Auxilium
             {
                 GetForm<frmLogin>().HandleRegisterResponse((RegisterResponse)packet);
             }
-
         }
 
-        static T GetForm<T>()
+        private static T GetForm<T>()
         {
             return Application.OpenForms.OfType<T>().FirstOrDefault();
         }

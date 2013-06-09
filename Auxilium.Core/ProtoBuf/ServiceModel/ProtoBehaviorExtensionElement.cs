@@ -19,7 +19,7 @@ namespace ProtoBuf.ServiceModel
 
         /// <summary>
         /// Gets the type of behavior.
-        /// </summary>     
+        /// </summary>
         public override Type BehaviorType
         {
             get

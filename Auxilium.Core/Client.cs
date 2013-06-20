@@ -1,15 +1,14 @@
-﻿using Auxilium.Core.Packets;
-using ProtoBuf;
-using ProtoBuf.Meta;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Cryptography;
+using Auxilium.Core.Packets;
+using ProtoBuf;
+using ProtoBuf.Meta;
 
 namespace Auxilium.Core
 {
@@ -67,9 +66,9 @@ namespace Auxilium.Core
                             ClientRead(this, packet);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine();
+                    Console.WriteLine(ex.ToString());
                 }
             }
         }
@@ -145,7 +144,6 @@ namespace Auxilium.Core
                 _handle = sock;
 
                 _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
                 _handle.NoDelay = true;
 
                 BufferSize = size;
@@ -171,7 +169,6 @@ namespace Auxilium.Core
                 _handle = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
                 _handle.NoDelay = true;
 
                 _item[0].RemoteEndPoint = new IPEndPoint(GetAddress(host), port);
@@ -354,7 +351,7 @@ namespace Auxilium.Core
             }
             catch
             {
-                return;
+                throw new SwagOverflowException();
             }
         }
 
@@ -437,15 +434,14 @@ namespace Auxilium.Core
                     {
                         //Create a copy of _readBuffer so it doesn't get changed by the time OnClientRead is actually called - .Post() is slow.
                         byte[] buff = new byte[_readBuffer.Length];
-                        fixed (byte* src = _readBuffer) fixed (byte* dst = buff) memcpy(dst, src, (ulong)_readBuffer.Length);
-                        _asyncOperation.Post(x => OnClientRead((byte[])x), buff);
+                        //fixed (byte* src = _readBuffer) fixed (byte* dst = buff) memcpy(dst, src, (ulong)_readBuffer.Length);
+                        Buffer.BlockCopy(_readBuffer, 0, buff, 0, buff.Length);
+                        _asyncOperation.Post(x => { OnClientRead((byte[])x); x = null; }, buff);
                     }
                 }
 
                 if (read < (length - index))
-                {
                     HandleRead(data, index + read, length);
-                }
             }
             catch
             {
@@ -453,7 +449,7 @@ namespace Auxilium.Core
             }
         }
 
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false), SuppressUnmanagedCodeSecurity]
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         public static unsafe extern void* memcpy(void* dest, void* src, ulong count);
     }
 }

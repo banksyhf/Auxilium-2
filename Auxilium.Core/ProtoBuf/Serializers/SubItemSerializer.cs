@@ -1,7 +1,7 @@
 ﻿#if !NO_RUNTIME
 
-using ProtoBuf.Meta;
 using System;
+using ProtoBuf.Meta;
 
 #if FEAT_COMPILER
 #if FEAT_IKVM

@@ -1,6 +1,6 @@
-﻿using ProtoBuf.Meta;
-using System;
+﻿using System;
 using System.ComponentModel;
+using ProtoBuf.Meta;
 
 #if FEAT_IKVM
 using Type = IKVM.Reflection.Type;

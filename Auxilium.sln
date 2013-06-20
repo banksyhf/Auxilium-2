@@ -7,6 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auxilium.Core", "Auxilium.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{6C6ED538-D2FA-4814-ABA0-EB3965B4EFC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater.csproj", "{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E4C3DEBF-12BD-4A9B-BF3E-31D23158C4BD} = {E4C3DEBF-12BD-4A9B-BF3E-31D23158C4BD}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +53,17 @@ Global
 		{6C6ED538-D2FA-4814-ABA0-EB3965B4EFC1}.Release|Mixed Platforms.Build.0 = Release|x86
 		{6C6ED538-D2FA-4814-ABA0-EB3965B4EFC1}.Release|x86.ActiveCfg = Release|x86
 		{6C6ED538-D2FA-4814-ABA0-EB3965B4EFC1}.Release|x86.Build.0 = Release|x86
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Debug|x86.Build.0 = Debug|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3B8A8D0A-CF16-4C1B-B234-0AFCAB578FD3}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

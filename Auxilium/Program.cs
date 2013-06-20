@@ -1,12 +1,13 @@
-﻿using Auxilium.Core;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Threading;
+using System.Windows.Forms;
+using Auxilium.Core;
 using Auxilium.Core.Packets;
 using Auxilium.Core.Packets.ClientPackets;
 using Auxilium.Core.Packets.ServerPackets;
 using Auxilium.Forms;
-using System;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Windows.Forms;
 
 namespace Auxilium
 {
@@ -16,76 +17,124 @@ namespace Auxilium
 
         private static frmMain MainForm { get; set; }
 
-        private static frmLogin LoginForm { get; set; }
-
         [STAThread]
         private static void Main()
         {
-            Connect();
+            if (File.Exists("updater.exe"))
+            {
+                TryStartNewThread(new Action(() => { Thread.Sleep(500); File.Delete("updater.exe"); }));
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            LoginForm = new frmLogin(Client);
-            LoginForm.Show();
-            Application.Run();
+
+            MainForm = new frmMain(Client);
+            Connect();
+
+            Application.Run(MainForm);
         }
 
-        private static void Connect()
+        public static void Connect()
         {
-            if (Client == null || !Client.Connected)
-                Client = new Client(8192);
+            if (Client != null)
+                Client.Disconnect();
+
+            Client = new Client(bufferSize: 8192);
 
             Client.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
                 typeof(Initialize),
                 typeof(Login), typeof(LoginResponse),
                 typeof(Register), typeof(RegisterResponse),
-                typeof(ClientMessage), typeof(BroadcastMessage)
+                typeof(ChannelListRequest), typeof(ChannelList), typeof(ChangeChannel),
+                typeof(ClientMessage), typeof(BroadcastMessage),
             });
 
             Client.ClientState += ClientState;
             Client.ClientRead += ClientRead;
             Client.ClientFail += ClientFail;
 
+#if DEBUG
             Client.Connect("127.0.0.1", 35);
+#else
+            Client.Connect("50.115.161.154", 35);
+#endif
+
+            if (MainForm != null)
+                MainForm.Client = Client;
         }
 
         private static void ClientState(Client client, bool connected)
         {
             if (connected)
             {
-                Console.WriteLine("Connected!");
+                if (MainForm != null)
+                {
+                    MainForm.ChangeTab(MainIndex.Login);
+                    MainForm.UpdateStatus("Status: Connected.");
+                }
             }
             else
             {
-                Console.WriteLine("Nop");
+                if (MainForm != null)
+                {
+                    MainForm.ChangeTab(MainIndex.Reconnect);
+                    MainForm.UpdateStatus("Status: Connection failed.");
+                    MainForm.Initialized = false;
+                }
             }
         }
 
         private static void ClientFail(Client client)
         {
+            if (MainForm != null)
+            {
+                MainForm.UpdateStatus("Status: Connection failed.");
+                MainForm.ChangeTab(MainIndex.Reconnect);
+                MainForm.Initialized = false;
+            }
         }
 
         private static void ClientRead(Client client, IPacket packet)
         {
-            Type type = packet.GetType();
+            try
+            {
+                Type type = packet.GetType();
 
-            if (type == typeof(Initialize))
-            {
-                client.HashAlgorithm = HashAlgorithm.Create(((Initialize)packet).HashAlgorithm);
+                if (type == typeof(Initialize))
+                {
+                    client.HashAlgorithm = HashAlgorithm.Create(((Initialize)packet).HashAlgorithm);
+                    MainForm.Initialized = true;
+                }
+                else if (type == typeof(LoginResponse))
+                {
+                    MainForm.HandleLoginResponse((LoginResponse)packet);
+                }
+                else if (type == typeof(RegisterResponse))
+                {
+                    MainForm.HandleRegisterResponse((RegisterResponse)packet);
+                }
+                else if (type == typeof(ChannelList))
+                {
+                    MainForm.HandleChannelList((ChannelList)packet);
+                }
+                else if (type == typeof(BroadcastMessage))
+                {
+                    MainForm.HandleBroadcastMessage((BroadcastMessage)packet);
+                }
             }
-            else if (type == typeof(LoginResponse))
+            catch
             {
-                GetForm<frmLogin>().HandleLoginResponse((LoginResponse)packet);
-            }
-            else if (type == typeof(RegisterResponse))
-            {
-                GetForm<frmLogin>().HandleRegisterResponse((RegisterResponse)packet);
             }
         }
 
-        private static T GetForm<T>()
+        private static void TryStartNewThread(Action action)
         {
-            return Application.OpenForms.OfType<T>().FirstOrDefault();
+            new Thread(() =>
+            {
+                try { action.Invoke(); }
+                catch { }
+            }) { IsBackground = true }.Start();
         }
     }
 }

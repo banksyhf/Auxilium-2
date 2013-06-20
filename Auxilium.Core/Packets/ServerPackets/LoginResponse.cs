@@ -1,10 +1,11 @@
-﻿using ProtoBuf;
+﻿using System;
+using ProtoBuf;
 
 namespace Auxilium.Core.Packets.ServerPackets
 {
     [ProtoContract]
     [ProtoInclude(1, typeof(IPacket))]
-    public class LoginResponse : IPacket
+    public class LoginResponse : IPacket, IDisposable
     {
         [ProtoMember(1)]
         public bool Successful { get; private set; }
@@ -29,6 +30,13 @@ namespace Auxilium.Core.Packets.ServerPackets
         public void Execute(Client client)
         {
             client.Send<LoginResponse>(this);
+            this.Dispose();
+        }
+
+        public void Dispose()
+        {
+            this.Message = null;
+            this.ErrorCode = 0;
         }
     }
 }

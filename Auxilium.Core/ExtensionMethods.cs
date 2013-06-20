@@ -8,6 +8,9 @@ namespace Auxilium.Core
     {
         public static string Hash(this string input, HashAlgorithm algo)
         {
+            if (algo == null)
+                return null;
+
             string salt = input[input[0] % input.Length] + "B4TH5ALTS" + input.Length;
 
             byte[] inputBytes = Encoding.UTF8.GetBytes(input + salt);

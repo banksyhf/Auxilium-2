@@ -1,10 +1,10 @@
-﻿using ProtoBuf;
-using System;
+﻿using System;
+using ProtoBuf;
 
 namespace Auxilium.Core.Packets
 {
     [ProtoContract]
-    internal class KeepAlive : IPacket
+    internal class KeepAlive : IPacket, IDisposable
     {
         [ProtoMember(1)]
         public DateTime TimeSent { get; private set; }
@@ -16,6 +16,11 @@ namespace Auxilium.Core.Packets
             TimeSent = DateTime.Now;
             Client = client;
             client.Send<KeepAlive>(this);
+        }
+
+        public void Dispose()
+        {
+            TimeSent = default(DateTime);
         }
     }
 }

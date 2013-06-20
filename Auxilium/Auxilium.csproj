@@ -11,7 +11,8 @@
     <RootNamespace>Auxilium</RootNamespace>
     <AssemblyName>Auxilium</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -19,7 +20,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Build\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,10 +29,13 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Build\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -46,17 +50,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\AeroRenderer.cs" />
     <Compile Include="Controls\HiddenTab.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\ListView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Forms\frmLogin.cs">
-      <SubType>Form</SubType>
+    <Compile Include="Controls\RichTextBox.cs">
+      <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Forms\frmLogin.Designer.cs">
-      <DependentUpon>frmLogin.cs</DependentUpon>
+    <Compile Include="Controls\ScrollBarInfo.cs" />
+    <Compile Include="Controls\SmoothLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\TreeView.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Forms\frmMain.cs">
       <SubType>Form</SubType>
@@ -64,14 +73,38 @@
     <Compile Include="Forms\frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\frmNews.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmNews.Designer.cs">
+      <DependentUpon>frmNews.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmOptions.Designer.cs">
+      <DependentUpon>frmOptions.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\MainIndex.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Forms\frmLogin.resx">
-      <DependentUpon>frmLogin.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <Compile Include="Settings.cs" />
+    <Compile Include="Updating\frmUpdater.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Updating\frmUpdater.Designer.cs">
+      <DependentUpon>frmUpdater.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Updating\Updater.cs" />
+    <Compile Include="NativeMethods.cs" />
     <EmbeddedResource Include="Forms\frmMain.resx">
       <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmNews.resx">
+      <DependentUpon>frmNews.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmOptions.resx">
+      <DependentUpon>frmOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -81,7 +114,11 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Updating\frmUpdater.resx">
+      <DependentUpon>frmUpdater.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -92,13 +129,67 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\Auxilium.Core\Auxilium.Core.csproj">
       <Project>{63368330-11CC-407D-96FA-9D10A415ECA1}</Project>
       <Name>Auxilium.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\Ranks\1.png" />
+    <EmbeddedResource Include="Images\Ranks\10.png" />
+    <EmbeddedResource Include="Images\Ranks\11.png" />
+    <EmbeddedResource Include="Images\Ranks\12.png" />
+    <EmbeddedResource Include="Images\Ranks\13.png" />
+    <EmbeddedResource Include="Images\Ranks\14.png" />
+    <EmbeddedResource Include="Images\Ranks\15.png" />
+    <EmbeddedResource Include="Images\Ranks\16.png" />
+    <EmbeddedResource Include="Images\Ranks\17.png" />
+    <EmbeddedResource Include="Images\Ranks\18.png" />
+    <EmbeddedResource Include="Images\Ranks\19.png" />
+    <EmbeddedResource Include="Images\Ranks\2.png" />
+    <EmbeddedResource Include="Images\Ranks\20.png" />
+    <EmbeddedResource Include="Images\Ranks\21.png" />
+    <EmbeddedResource Include="Images\Ranks\22.png" />
+    <EmbeddedResource Include="Images\Ranks\23.png" />
+    <EmbeddedResource Include="Images\Ranks\24.png" />
+    <EmbeddedResource Include="Images\Ranks\25.png" />
+    <EmbeddedResource Include="Images\Ranks\26.png" />
+    <EmbeddedResource Include="Images\Ranks\27.png" />
+    <EmbeddedResource Include="Images\Ranks\28.png" />
+    <EmbeddedResource Include="Images\Ranks\29.png" />
+    <EmbeddedResource Include="Images\Ranks\3.png" />
+    <EmbeddedResource Include="Images\Ranks\30.png" />
+    <EmbeddedResource Include="Images\Ranks\31.png" />
+    <EmbeddedResource Include="Images\Ranks\32.png" />
+    <EmbeddedResource Include="Images\Ranks\33.png" />
+    <EmbeddedResource Include="Images\Ranks\34.png" />
+    <EmbeddedResource Include="Images\Ranks\35.png" />
+    <EmbeddedResource Include="Images\Ranks\36.png" />
+    <EmbeddedResource Include="Images\Ranks\37.png" />
+    <EmbeddedResource Include="Images\Ranks\38.png" />
+    <EmbeddedResource Include="Images\Ranks\39.png" />
+    <EmbeddedResource Include="Images\Ranks\4.png" />
+    <EmbeddedResource Include="Images\Ranks\40.png" />
+    <EmbeddedResource Include="Images\Ranks\41.png" />
+    <EmbeddedResource Include="Images\Ranks\42.png" />
+    <EmbeddedResource Include="Images\Ranks\5.png" />
+    <EmbeddedResource Include="Images\Ranks\6.png" />
+    <EmbeddedResource Include="Images\Ranks\7.png" />
+    <EmbeddedResource Include="Images\Ranks\8.png" />
+    <EmbeddedResource Include="Images\Ranks\9.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\channel-icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Notify.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="icon.ico" />
+    <None Include="Resources\Updater.exe" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

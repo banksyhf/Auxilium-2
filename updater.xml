@@ -1,0 +1,6 @@
+<VersionConfig>
+<Version>1.0.0.5</Version>
+<Link>https://s3-us-west-2.amazonaws.com/auxilium2/auxilium.zip</Link>
+<ChangeLog>- Enter key now logs you in/registers an account.\n
+- Server now sends the last 10 messages in the channel.</ChangeLog>
+</VersionConfig>

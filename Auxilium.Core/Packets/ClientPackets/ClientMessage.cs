@@ -1,10 +1,11 @@
-﻿using ProtoBuf;
+﻿using System;
+using ProtoBuf;
 
 namespace Auxilium.Core.Packets.ClientPackets
 {
     [ProtoContract]
     [ProtoInclude(1, typeof(IPacket))]
-    public class ClientMessage : IPacket
+    public class ClientMessage : IPacket, IDisposable
     {
         [ProtoMember(1)]
         public string Message { get; private set; }
@@ -21,6 +22,12 @@ namespace Auxilium.Core.Packets.ClientPackets
         public void Execute(Client client)
         {
             client.Send<ClientMessage>(this);
+            this.Dispose();
+        }
+
+        public void Dispose()
+        {
+            this.Message = null;
         }
     }
 }

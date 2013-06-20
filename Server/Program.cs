@@ -297,7 +297,12 @@ namespace Auxilium_Server
 
         private static void AddMessageToRecent(BroadcastMessage message, byte channelID)
         {
-            _recentMessages.First(x => x.Key == channelID).Value.Add(message);
+            var messages = _recentMessages.First(x => x.Key == channelID).Value;
+
+            if (messages.Count == 10)
+                messages.RemoveAt(0);
+
+            messages.Add(message);
         }
 
         #endregion " Helper Methods "

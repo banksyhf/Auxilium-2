@@ -34,7 +34,7 @@ namespace Auxilium.Forms
         private void SetOptions(Options options)
         {
             cbTimestamps.Checked = options.Timestamps;
-            cbNotificationSound.Checked = options.ChatNotifications;
+            cbNotifications.Checked = options.ChatNotifications;
             cbMinimizeToTray.Checked = options.MinimizeToTray;
             cbNotificationSound.Checked = options.AudioNotification;
             cbSpaceMessages.Checked = options.SpaceMessages;

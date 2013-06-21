@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auxilium", "Auxilium\Auxilium.csproj", "{E4C3DEBF-12BD-4A9B-BF3E-31D23158C4BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auxilium.Core", "Auxilium.Core\Auxilium.Core.csproj", "{63368330-11CC-407D-96FA-9D10A415ECA1}"

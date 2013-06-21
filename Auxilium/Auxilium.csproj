@@ -3,14 +3,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{E4C3DEBF-12BD-4A9B-BF3E-31D23158C4BD}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Auxilium</RootNamespace>
     <AssemblyName>Auxilium</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -33,16 +34,16 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <ApplicationIcon>Images\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
@@ -67,6 +68,7 @@
     <Compile Include="Controls\TreeView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Forms\frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,6 +86,18 @@
     </Compile>
     <Compile Include="Forms\frmOptions.Designer.cs">
       <DependentUpon>frmOptions.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmPrivate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmPrivate.Designer.cs">
+      <DependentUpon>frmPrivate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmSuggestion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmSuggestion.Designer.cs">
+      <DependentUpon>frmSuggestion.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\MainIndex.cs" />
     <Compile Include="Program.cs" />
@@ -119,6 +133,7 @@
     <EmbeddedResource Include="Updating\frmUpdater.resx">
       <DependentUpon>frmUpdater.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -180,13 +195,19 @@
     <EmbeddedResource Include="Images\Ranks\9.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\frmPrivate.resx">
+      <DependentUpon>frmPrivate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmSuggestion.resx">
+      <DependentUpon>frmSuggestion.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Images\channel-icon.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Notify.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="icon.ico" />
+    <Content Include="Images\icon.ico" />
     <None Include="Resources\Updater.exe" />
   </ItemGroup>
   <ItemGroup />

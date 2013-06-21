@@ -35,7 +35,11 @@ namespace Auxilium_Server
             foreach (Channel channel in channels)
                 _recentMessages.Add(channel.Id, new List<BroadcastMessage>());
 
-            _server = new Server(bufferSize: 8192, maxConnections: 5000);
+            _server = new Server
+            {
+                BufferSize = 8192,
+                MaxConnections = 5000
+            };
 
             _server.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
@@ -44,6 +48,8 @@ namespace Auxilium_Server
                 typeof(Register), typeof(RegisterResponse),
                 typeof(ChannelListRequest), typeof(ChannelList), typeof(ChangeChannel),
                 typeof(ClientMessage), typeof(BroadcastMessage),
+                typeof(Suggestion), typeof(SuggestionResponse),
+                typeof(PrivateMessage), typeof(PrivateMessageCountRequest), typeof(PrivateMessagesRequest)
             });
 
             _server.ClientRead += ClientRead;
@@ -51,7 +57,7 @@ namespace Auxilium_Server
 
             _server.Listen(35);
 
-            _chatMonitor = new System.Threading.Timer(Monitor, null, 1000, 60000); //240,000 = 4 Minutes
+            _chatMonitor = new System.Threading.Timer(Monitor, null, 1000, 240000); //240,000 = 4 Minutes
 
             Application.Run();
         }
@@ -83,7 +89,7 @@ namespace Auxilium_Server
             {
                 if (packetType == typeof(ClientMessage))
                 {
-                    HandleClientMessage(client, (ClientMessage)packet);
+                    HandleClientMessagePacket(client, (ClientMessage)packet);
                 }
                 else if (packetType == typeof(ChannelListRequest))
                 {
@@ -92,6 +98,14 @@ namespace Auxilium_Server
                 else if (packetType == typeof(ChangeChannel))
                 {
                     HandleChangeChannelPacket(client, (ChangeChannel)packet);
+                }
+                else if (packetType == typeof(Suggestion))
+                {
+                    HandleSuggestionPacket(client, (Suggestion)packet);
+                }
+                else if (packetType == typeof(PrivateMessagesRequest))
+                {
+                    HandlePrivateMessagesRequestPacket(client);
                 }
             }
             else
@@ -205,17 +219,17 @@ namespace Auxilium_Server
 
         private static void HandleRegisterPacket(Client client, Register packet)
         {
-            if (string.IsNullOrWhiteSpace(packet.Username))
+            if (packet.Username.IsNullOrWhiteSpace())
             {
                 new RegisterResponse(false, "Username must not be empty.", (int)MessageBoxIcon.Error).Execute(client);
                 return;
             }
-            else if (string.IsNullOrWhiteSpace(packet.Password))
+            else if (packet.Password.IsNullOrWhiteSpace())
             {
                 new RegisterResponse(false, "Password must not be empty.", (int)MessageBoxIcon.Error).Execute(client);
                 return;
             }
-            else if (string.IsNullOrWhiteSpace(packet.Email))
+            else if (packet.Email.IsNullOrWhiteSpace())
             {
                 new RegisterResponse(false, "Email must not be empty.", (int)MessageBoxIcon.Error).Execute(client);
                 return;
@@ -238,7 +252,7 @@ namespace Auxilium_Server
             SendRecentMessages(client);
         }
 
-        private static void HandleClientMessage(Client client, ClientMessage packet)
+        private static void HandleClientMessagePacket(Client client, ClientMessage packet)
         {
             client.Value.AddPoints(5); //AWARD 5 POINTS FOR ACTIVITY***
 
@@ -251,6 +265,27 @@ namespace Auxilium_Server
                 }
             }
             AddMessageToRecent(message, client.Value.Channel);
+        }
+
+        private static void HandleSuggestionPacket(Client client, Suggestion packet)
+        {
+            bool success = Accessor.AddNewSuggestion(packet.Username, packet.Text);
+
+            new SuggestionResponse(success).Execute(client);
+        }
+
+        private static void HandlePrivateMessagesRequestPacket(Client client)
+        {
+            PrivateMessageInfo[] pms = Accessor.GetPrivateMessages(client.Value.ID);
+
+            foreach (PrivateMessageInfo pm in pms)
+            {
+                new PrivateMessage(pm.Subject,
+                    Accessor.GetUser(pm.FromID).Username,
+                    Accessor.GetUser(pm.ToID).Username,
+                    pm.TimeSent,
+                    pm.Message).Execute(client);
+            }
         }
 
         #endregion " Packet Handlers "

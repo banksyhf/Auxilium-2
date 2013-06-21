@@ -9,7 +9,8 @@ namespace Auxilium.Forms
         {
             InitializeComponent();
 
-            txtNews.Text = news.Replace(@"\n", Environment.NewLine);
+            if (news != null)
+                txtNews.Text = news.Replace(@"\n", Environment.NewLine);
             btnOK.Select();
         }
 

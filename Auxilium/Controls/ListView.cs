@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace Auxilium.Controls
 {
@@ -26,6 +27,22 @@ namespace Auxilium.Controls
         {
             switch (m.Msg)
             {
+                case 0x1000 + 145:
+                    // LVM_INSERTGROUP = LVM_FIRST + 145;
+                    // Add the collapsible feature id needed
+                    LVGROUP lvgroup = (LVGROUP)Marshal.PtrToStructure(m.LParam, typeof(LVGROUP));
+                    lvgroup.state = (int)GroupState.COLLAPSIBLE;
+                    // LVGS_COLLAPSIBLE
+                    lvgroup.mask = lvgroup.mask ^ 4;
+                    // LVGF_STATE
+                    Marshal.StructureToPtr(lvgroup, m.LParam, true);
+                    base.WndProc(ref m);
+                    break;
+                case 0x202:
+                    //WM_LBUTTONUP
+                    base.DefWndProc(ref m);
+                    base.WndProc(ref m);
+                    break;
                 case 0x83: // WM_NCCALCSIZE
                     int style = (int)GetWindowLong(this.Handle, GwlStyle);
                     if ((style & WsHscroll) == WsHscroll)
@@ -38,6 +55,31 @@ namespace Auxilium.Controls
                     break;
             }
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct LVGROUP
+        {
+            public int cbSize;
+            public int mask;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pszHeader;
+            public int cchHeader;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string pszFooter;
+            public int cchFooter;
+            public int iGroupId;
+            public int stateMask;
+            public int state;
+            public int uAlign;
+        }
+        public enum GroupState
+        {
+            COLLAPSIBLE = 8,
+            COLLAPSED = 1,
+            EXPANDED = 0
+        }
+        [DllImport("user32.dll")]
+        static extern int SendMessage(IntPtr window, int message, int wParam, IntPtr lParam);
 
         private const int GwlStyle = -16;
         public const int WsHscroll = 0x00100000;

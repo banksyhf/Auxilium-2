@@ -31,7 +31,24 @@ namespace Auxilium
             MainForm = new frmMain(Client);
             Connect();
 
+            Application.ApplicationExit += Application_ApplicationExit;
+
             Application.Run(MainForm);
+        }
+
+        static void Application_ApplicationExit(object sender, EventArgs e)
+        {
+            if (MainForm != null && MainForm.notifyIcon != null)
+            {
+                try
+                {
+                    MainForm.notifyIcon.Visible = false;
+                    MainForm.notifyIcon = null;
+                }
+                catch
+                {
+                }
+            }
         }
 
         public static void Connect()
@@ -39,7 +56,10 @@ namespace Auxilium
             if (Client != null)
                 Client.Disconnect();
 
-            Client = new Client(bufferSize: 8192);
+            Client = new Client
+            {
+                BufferSize = 8192
+            };
 
             Client.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
@@ -48,6 +68,8 @@ namespace Auxilium
                 typeof(Register), typeof(RegisterResponse),
                 typeof(ChannelListRequest), typeof(ChannelList), typeof(ChangeChannel),
                 typeof(ClientMessage), typeof(BroadcastMessage),
+                typeof(Suggestion), typeof(SuggestionResponse),
+                typeof(PrivateMessage), typeof(PrivateMessageCountRequest), typeof(PrivateMessagesRequest)
             });
 
             Client.ClientState += ClientState;
@@ -81,6 +103,8 @@ namespace Auxilium
                     MainForm.ChangeTab(MainIndex.Reconnect);
                     MainForm.UpdateStatus("Status: Connection failed.");
                     MainForm.Initialized = false;
+
+                    NativeMethods.FlashWindow(MainForm.Handle, true);
                 }
             }
         }
@@ -122,6 +146,14 @@ namespace Auxilium
                 {
                     MainForm.HandleBroadcastMessage((BroadcastMessage)packet);
                 }
+                else if (type == typeof(SuggestionResponse))
+                {
+                    HandleSuggestionResponse((SuggestionResponse)packet);
+                }
+                else if (type == typeof(PrivateMessage))
+                {
+                    GetForm<frmPrivate>().AddPrivateMessage((PrivateMessage)packet);
+                }
             }
             catch
             {
@@ -135,6 +167,28 @@ namespace Auxilium
                 try { action.Invoke(); }
                 catch { }
             }) { IsBackground = true }.Start();
+        }
+
+        private static T GetForm<T>() where T : Form
+        {
+            foreach (Form form in Application.OpenForms)
+                if (form is T)
+                    return (T)form;
+
+            return null;
+        }
+
+
+        private static void HandleSuggestionResponse(SuggestionResponse packet)
+        {
+            if (packet.Successful)
+            {
+                MessageBox.Show("Thank you for your suggestion!", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("There was an error submitting your suggestion.", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

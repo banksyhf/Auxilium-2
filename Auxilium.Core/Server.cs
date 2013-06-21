@@ -82,11 +82,9 @@ namespace Auxilium.Core
 
         private List<Type> PacketTypes { get; set; }
 
-        public Server(int bufferSize, int maxConnections)
+        public Server()
         {
             PacketTypes = new List<Type>();
-            BufferSize = bufferSize;
-            MaxConnections = maxConnections;
         }
 
         public void Listen(ushort port)

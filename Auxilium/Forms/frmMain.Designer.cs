@@ -35,17 +35,21 @@
             this.tsmOptions = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmChangeFont = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmClearChat = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmCheckForUpdates = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmEditProfile = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmSignOut = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmPrivateMessages = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmNews = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmSendSuggestion = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmVersion = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmPing = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmSource = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.statusMain = new System.Windows.Forms.StatusStrip();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.tslSpacer = new System.Windows.Forms.ToolStripStatusLabel();
@@ -88,11 +92,9 @@
             this.tabLogin.SuspendLayout();
             this.tabRegister.SuspendLayout();
             this.tabChat.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerUserList)).BeginInit();
             this.splitContainerUserList.Panel1.SuspendLayout();
             this.splitContainerUserList.Panel2.SuspendLayout();
             this.splitContainerUserList.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerChat)).BeginInit();
             this.splitContainerChat.Panel1.SuspendLayout();
             this.splitContainerChat.Panel2.SuspendLayout();
             this.splitContainerChat.SuspendLayout();
@@ -122,6 +124,8 @@
             this.tsmOptions,
             this.tsmChangeFont,
             this.tsmClearChat,
+            this.toolStripSeparator1,
+            this.tsmCheckForUpdates,
             this.toolStripSeparator3,
             this.tsmEditProfile,
             this.tsmSignOut});
@@ -133,42 +137,54 @@
             // tsmOptions
             // 
             this.tsmOptions.Name = "tsmOptions";
-            this.tsmOptions.Size = new System.Drawing.Size(141, 22);
+            this.tsmOptions.Size = new System.Drawing.Size(171, 22);
             this.tsmOptions.Text = "Options";
             this.tsmOptions.Click += new System.EventHandler(this.tsmOptions_Click);
             // 
             // tsmChangeFont
             // 
             this.tsmChangeFont.Name = "tsmChangeFont";
-            this.tsmChangeFont.Size = new System.Drawing.Size(141, 22);
+            this.tsmChangeFont.Size = new System.Drawing.Size(171, 22);
             this.tsmChangeFont.Text = "Change Font";
             this.tsmChangeFont.Click += new System.EventHandler(this.tsmChangeFont_Click);
             // 
             // tsmClearChat
             // 
             this.tsmClearChat.Name = "tsmClearChat";
-            this.tsmClearChat.Size = new System.Drawing.Size(141, 22);
+            this.tsmClearChat.Size = new System.Drawing.Size(171, 22);
             this.tsmClearChat.Text = "Clear Chat";
             this.tsmClearChat.Click += new System.EventHandler(this.tsmClearChat_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(168, 6);
+            // 
+            // tsmCheckForUpdates
+            // 
+            this.tsmCheckForUpdates.Name = "tsmCheckForUpdates";
+            this.tsmCheckForUpdates.Size = new System.Drawing.Size(171, 22);
+            this.tsmCheckForUpdates.Text = "Check For Updates";
+            this.tsmCheckForUpdates.Click += new System.EventHandler(this.tsmCheckForUpdates_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(138, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(168, 6);
             // 
             // tsmEditProfile
             // 
             this.tsmEditProfile.Enabled = false;
             this.tsmEditProfile.Image = ((System.Drawing.Image)(resources.GetObject("tsmEditProfile.Image")));
             this.tsmEditProfile.Name = "tsmEditProfile";
-            this.tsmEditProfile.Size = new System.Drawing.Size(141, 22);
+            this.tsmEditProfile.Size = new System.Drawing.Size(171, 22);
             this.tsmEditProfile.Text = "Edit Profile";
             // 
             // tsmSignOut
             // 
             this.tsmSignOut.Image = ((System.Drawing.Image)(resources.GetObject("tsmSignOut.Image")));
             this.tsmSignOut.Name = "tsmSignOut";
-            this.tsmSignOut.Size = new System.Drawing.Size(141, 22);
+            this.tsmSignOut.Size = new System.Drawing.Size(171, 22);
             this.tsmSignOut.Text = "Sign Out";
             this.tsmSignOut.Click += new System.EventHandler(this.tsmSignOut_Click);
             // 
@@ -179,11 +195,14 @@
             this.tsmPrivateMessages.Name = "tsmPrivateMessages";
             this.tsmPrivateMessages.Size = new System.Drawing.Size(56, 22);
             this.tsmPrivateMessages.Text = "PMs";
+            this.tsmPrivateMessages.Click += new System.EventHandler(this.tsmPrivateMessages_Click);
             // 
             // tsmHelp
             // 
             this.tsmHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsmNews,
+            this.toolStripSeparator4,
+            this.tsmSendSuggestion,
             this.toolStripSeparator2,
             this.tsmVersion,
             this.tsmPing});
@@ -196,25 +215,37 @@
             // 
             this.tsmNews.Image = ((System.Drawing.Image)(resources.GetObject("tsmNews.Image")));
             this.tsmNews.Name = "tsmNews";
-            this.tsmNews.Size = new System.Drawing.Size(152, 22);
+            this.tsmNews.Size = new System.Drawing.Size(162, 22);
             this.tsmNews.Text = "News";
             this.tsmNews.Click += new System.EventHandler(this.tsmNews_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(159, 6);
+            // 
+            // tsmSendSuggestion
+            // 
+            this.tsmSendSuggestion.Name = "tsmSendSuggestion";
+            this.tsmSendSuggestion.Size = new System.Drawing.Size(162, 22);
+            this.tsmSendSuggestion.Text = "Send Suggestion";
+            this.tsmSendSuggestion.Click += new System.EventHandler(this.tsmSendSuggestion_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(180, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(159, 6);
             // 
             // tsmVersion
             // 
             this.tsmVersion.Name = "tsmVersion";
-            this.tsmVersion.Size = new System.Drawing.Size(183, 22);
+            this.tsmVersion.Size = new System.Drawing.Size(162, 22);
             this.tsmVersion.Text = "Version: ";
             // 
             // tsmPing
             // 
             this.tsmPing.Name = "tsmPing";
-            this.tsmPing.Size = new System.Drawing.Size(183, 22);
+            this.tsmPing.Size = new System.Drawing.Size(162, 22);
             this.tsmPing.Text = "Ping: ";
             // 
             // tsmSource
@@ -251,13 +282,13 @@
             // tslSpacer
             // 
             this.tslSpacer.Name = "tslSpacer";
-            this.tslSpacer.Size = new System.Drawing.Size(329, 17);
+            this.tslSpacer.Size = new System.Drawing.Size(330, 17);
             this.tslSpacer.Spring = true;
             // 
             // lblUsersPlaceHolder
             // 
             this.lblUsersPlaceHolder.Name = "lblUsersPlaceHolder";
-            this.lblUsersPlaceHolder.Size = new System.Drawing.Size(86, 17);
+            this.lblUsersPlaceHolder.Size = new System.Drawing.Size(85, 17);
             this.lblUsersPlaceHolder.Text = "Users Online: 0";
             // 
             // rankList
@@ -280,20 +311,20 @@
             this.cmsNotifyIcon.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsmExit});
             this.cmsNotifyIcon.Name = "cmsNotifyIcon";
-            this.cmsNotifyIcon.Size = new System.Drawing.Size(94, 26);
+            this.cmsNotifyIcon.Size = new System.Drawing.Size(93, 26);
             // 
             // tsmExit
             // 
             this.tsmExit.Name = "tsmExit";
-            this.tsmExit.Size = new System.Drawing.Size(93, 22);
+            this.tsmExit.Size = new System.Drawing.Size(92, 22);
             this.tsmExit.Text = "Exit";
             this.tsmExit.Click += new System.EventHandler(this.tsmExit_Click);
             // 
             // hiddenMain
             // 
-            this.hiddenMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.hiddenMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.hiddenMain.Controls.Add(this.tabLogin);
             this.hiddenMain.Controls.Add(this.tabRegister);
             this.hiddenMain.Controls.Add(this.tabChat);
@@ -653,9 +684,8 @@
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Auxilium";
-            this.Activated += new System.EventHandler(this.frmMain_Activated);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMain_FormClosed);
             this.Shown += new System.EventHandler(this.frmMain_Shown);
+            this.Activated += new System.EventHandler(this.frmMain_Activated);
             this.Resize += new System.EventHandler(this.frmMain_Resize);
             this.msMenu.ResumeLayout(false);
             this.msMenu.PerformLayout();
@@ -670,11 +700,9 @@
             this.tabChat.ResumeLayout(false);
             this.splitContainerUserList.Panel1.ResumeLayout(false);
             this.splitContainerUserList.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerUserList)).EndInit();
             this.splitContainerUserList.ResumeLayout(false);
             this.splitContainerChat.Panel1.ResumeLayout(false);
             this.splitContainerChat.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerChat)).EndInit();
             this.splitContainerChat.ResumeLayout(false);
             this.tabReconnect.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -731,10 +759,14 @@
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
         private System.Windows.Forms.ToolStripStatusLabel tslSpacer;
         private System.Windows.Forms.ToolStripStatusLabel lblUsersPlaceHolder;
-        private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.ContextMenuStrip cmsNotifyIcon;
         private System.Windows.Forms.ToolStripMenuItem tsmExit;
         private System.Windows.Forms.RichTextBox rtbMessage;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem tsmCheckForUpdates;
+        internal System.Windows.Forms.NotifyIcon notifyIcon;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripMenuItem tsmSendSuggestion;
     }
 }
 

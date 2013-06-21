@@ -122,10 +122,9 @@ namespace Auxilium.Core
 
         private int _typeIndex = 0;
 
-        public Client(int bufferSize)
+        public Client()
         {
             _asyncOperation = AsyncOperationManager.CreateOperation(null);
-            BufferSize = bufferSize;
         }
 
         internal Client(Server server, Socket sock, int size, Type[] packets)

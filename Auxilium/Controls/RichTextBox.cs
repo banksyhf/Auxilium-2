@@ -15,7 +15,7 @@ namespace Auxilium.Controls
 
         [StructLayout(LayoutKind.Sequential)]
         private struct SCROLLINFO
-        {
+            {
             public uint size;
             public uint mask;
             public int min;
@@ -26,6 +26,14 @@ namespace Auxilium.Controls
         }
 
         private SCROLLINFO Scroll;
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            if (ScrolledToBottom())
+                ScrollToBottom();
+
+            base.OnSizeChanged(e);
+        }
 
         private bool ScrolledToBottom()
         {
@@ -67,7 +75,7 @@ namespace Auxilium.Controls
 
             if (AutoScroll)
             {
-                SendMessage(Handle, 277, 7, 0);
+                ScrollToBottom();
                 //Reliably scroll to bottom
             }
             else
@@ -77,6 +85,11 @@ namespace Auxilium.Controls
                 if (Focus)
                     this.Focus();
             }
+        }
+
+        private void ScrollToBottom()
+        {
+            SendMessage(Handle, 277, 7, 0);
         }
     }
 }

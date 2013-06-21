@@ -39,7 +39,6 @@ namespace Auxilium
                 using (FileStream fs = File.OpenRead(Path))
                 {
                     return (Options)xml.Deserialize(fs);
-                    fs.Close();
                 }
             }
             catch

@@ -109,7 +109,7 @@ namespace Auxilium.Forms
                 {
                     Debug.Print(ex.ToString());
                 }
-                Thread.Sleep(1000);
+                Thread.Sleep(150000);
             }
         }
 
@@ -305,7 +305,7 @@ namespace Auxilium.Forms
                     new ClientMessage(message).Execute(Client);
 
                     //Show message locally. May want to wait for verification from server.
-                    AppendChat(Color.ForestGreen, Color.DimGray, Username, message);
+                    AppendChat(Color.ForestGreen, Color.DimGray, Username, message, DateTime.Now);
 
                     rtbMessage.Clear();
                 }
@@ -388,16 +388,7 @@ namespace Auxilium.Forms
 
         private void tsmExit_Click(object sender, EventArgs e)
         {
-            notifyIcon.Visible = false;
-            notifyIcon.Dispose();
-            Environment.Exit(0);
-        }
-
-        private void frmMain_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            notifyIcon.Visible = false;
-            notifyIcon.Dispose();
-            Environment.Exit(0);
+            this.Close();
         }
 
         private void rtbChat_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -405,18 +396,38 @@ namespace Auxilium.Forms
             Process.Start(e.LinkText);
         }
 
+        private void tsmNews_Click(object sender, EventArgs e)
+        {
+            new frmNews(this.Updater.ChangeLog).ShowDialog();
+        }
+
+        private void tsmCheckForUpdates_Click(object sender, EventArgs e)
+        {
+            new Thread(() =>
+            {
+                this.Updater.UpdaterOpen = false;
+                if (this.Updater.UpdateAvailable())
+                    new frmUpdater(this.Updater).ShowDialog();
+                else
+                    MessageBox.Show("No update available.", "No update.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }) { IsBackground = true }.Start();
+        }
+
+        private void tsmSendSuggestion_Click(object sender, EventArgs e)
+        {
+            new frmSuggestion(this.Username, this.Client).ShowDialog();
+        }
+
         #endregion " Control Events "
 
         #region " Chat Methods "
 
-        private void AppendChat(Color nameColor, Color msgColor, string name, string message, DateTime time = default(DateTime))
+        private void AppendChat(Color nameColor, Color msgColor, string name, string message, DateTime time)
         {
             string sender = string.Format("{0}: ", name);
 
             if (Options.Timestamps)
-                sender = string.Format("[{0}] {1}", (time == default(DateTime) ? DateTime.Now.ToShortTimeString() : time.ToShortTimeString()), sender);
-
-            bool atBottom = ScrollBarInfo.CheckBottom(rtbChat);
+                sender = string.Format("[{0}] {1}", time.ToShortTimeString(), sender);
 
             AppendText(nameColor, sender);
             AppendText(msgColor, message);
@@ -424,32 +435,16 @@ namespace Auxilium.Forms
 
             if (Options.SpaceMessages)
                 AppendLine();
-
-            if (atBottom)
-                ScrollChat();
         }
 
         private void AppendText(Color c, string text)
         {
-            rtbChat.SelectionStart = rtbChat.TextLength;
-            rtbChat.SelectionLength = 0;
-            rtbChat.SelectionColor = c;
-
-            rtbChat.AppendText(text);
-
-            rtbChat.SelectionColor = rtbChat.ForeColor;
+            rtbChat.AppendText(c, text);
         }
 
         private void AppendLine()
         {
-            rtbChat.AppendText(Environment.NewLine);
-        }
-
-        private void ScrollChat()
-        {
-            rtbChat.SelectionStart = rtbChat.TextLength;
-            rtbChat.SelectionLength = 0;
-            rtbChat.ScrollToCaret();
+            rtbChat.AppendText(Color.Empty, Environment.NewLine);
         }
 
         #endregion " Chat Methods "
@@ -466,12 +461,12 @@ namespace Auxilium.Forms
                 string username = string.Empty;
                 string password = string.Empty;
 
-                if (names.Contains("Username") && !string.IsNullOrWhiteSpace(username = (string)rk.GetValue("Username")))
+                if (names.Contains("Username") && !(username = (string)rk.GetValue("Username")).IsNullOrWhiteSpace())
                 {
                     txtUsername.Text = username;
                     cbRemember.Checked = true;
                 }
-                if (names.Contains("Password") && !string.IsNullOrWhiteSpace(password = (string)rk.GetValue("Password")))
+                if (names.Contains("Password") && !(password = (string)rk.GetValue("Password")).IsNullOrWhiteSpace())
                 {
                     txtPassword.Text = password;
                     cbRemember.Checked = true;
@@ -571,9 +566,11 @@ namespace Auxilium.Forms
 
         #endregion " Other Methods "
 
-        private void tsmNews_Click(object sender, EventArgs e)
+        private void tsmPrivateMessages_Click(object sender, EventArgs e)
         {
-            new frmNews(this.Updater.ChangeLog).ShowDialog();
+            new frmPrivate(Client, Username).ShowDialog();
         }
+
+
     }
 }

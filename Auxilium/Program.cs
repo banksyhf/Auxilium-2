@@ -63,7 +63,7 @@ namespace Auxilium
 
             Client.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
-                typeof(Initialize),
+                typeof(Initialize), typeof(KeepAlive),
                 typeof(Login), typeof(LoginResponse),
                 typeof(Register), typeof(RegisterResponse),
                 typeof(ChannelListRequest), typeof(ChannelList), typeof(ChangeChannel),
@@ -81,6 +81,8 @@ namespace Auxilium
 #else
             Client.Connect("50.115.161.154", 35);
 #endif
+
+            TryStartNewThread(new Action(() => { while (true) { if (Client.Connected) new KeepAlive().Execute(Client); Thread.Sleep(25000); } }));
 
             if (MainForm != null)
                 MainForm.Client = Client;
@@ -190,5 +192,6 @@ namespace Auxilium
                 MessageBox.Show("There was an error submitting your suggestion.", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
     }
 }

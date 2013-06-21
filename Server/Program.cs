@@ -38,12 +38,13 @@ namespace Auxilium_Server
             _server = new Server
             {
                 BufferSize = 8192,
-                MaxConnections = 5000
+                MaxConnections = 5000,
+                SingleInstanceClients = true
             };
 
             _server.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
-                typeof(Initialize),
+                typeof(Initialize), typeof(KeepAlive),
                 typeof(Login), typeof(LoginResponse),
                 typeof(Register), typeof(RegisterResponse),
                 typeof(ChannelListRequest), typeof(ChannelList), typeof(ChangeChannel),
@@ -107,6 +108,10 @@ namespace Auxilium_Server
                 {
                     HandlePrivateMessagesRequestPacket(client);
                 }
+                else if (packetType == typeof(KeepAlive))
+                {
+                    HandleKeepAlivePacket(client);
+                }
             }
             else
             {
@@ -133,7 +138,7 @@ namespace Auxilium_Server
 
         private static void AwardPoints(Client c)
         {
-            if ((DateTime.Now - c.Value.LastAction).TotalMinutes >= 3)
+            if ((DateTime.Now - c.Value.LastAction).TotalMinutes >= 5)
             {
                 c.Value.Idle = true;
             }
@@ -145,7 +150,7 @@ namespace Auxilium_Server
             if (c.Value.Idle)
             {
                 if (c.Value.Rank < 29)
-                    c.Value.AddPoints((int)points);
+                    c.Value.AddPoints((int)(points * 0.1f));
             }
             else
             {
@@ -286,6 +291,11 @@ namespace Auxilium_Server
                     pm.TimeSent,
                     pm.Message).Execute(client);
             }
+        }
+
+        private static void HandleKeepAlivePacket(Client client)
+        {
+            new KeepAlive().Execute(client);
         }
 
         #endregion " Packet Handlers "

@@ -20,6 +20,9 @@ namespace Auxilium.Forms
     {
         public string Username { get; set; }
         public Client Client { get; set; }
+        private bool _isReplyOpen = false;
+
+        private Thread[] _resizeThreads = new Thread[2];
 
         public frmPrivate(Client client, string username)
         {
@@ -33,6 +36,7 @@ namespace Auxilium.Forms
             Color color = System.Windows.Forms.VisualStyles.VisualStyleInformation.TextControlBorder;
 
             panelReadMessage.BackColor = color;
+            panel1.BackColor = color;
         }
 
         public void AddPrivateMessage(PrivateMessage pm)
@@ -52,39 +56,90 @@ namespace Auxilium.Forms
             if (lvwPrivateMessages.SelectedItems.Count == 0)
                 return;
 
-            AnimateResize();
+            if (!_isReplyOpen)
+            {
+                if (_resizeThreads[1] != null && _resizeThreads[1].IsAlive)
+                    _resizeThreads[1].Abort();
+
+                AnimateResize();
+            }
         }
 
         private void AnimateResize()
         {
 
-            new Thread(() =>
+            Thread T = new Thread(() =>
             {
                 Invoke(new MethodInvoker(() =>
                 {
-                    lvwPrivateMessages.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+                    panel1.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
                     hiddenMessaging.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
                 }));
-
                 while (hiddenMessaging.Location.Y + hiddenMessaging.Height + 50 > this.Height)
                 {
                     Invoke(new MethodInvoker(() => this.Height += 1));
-
                     Thread.Sleep(2);
                 }
 
                 Invoke(new MethodInvoker(() =>
                 {
-                    lvwPrivateMessages.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+                    panel1.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
                     hiddenMessaging.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right;
                 }));
-            }) { IsBackground = true }.Start();
+                _isReplyOpen = true;
+            }) { IsBackground = true };
 
+            T.Start();
+            _resizeThreads[0] = T;
+
+        }
+
+        private void AnimateDefault()
+        {
+            Thread T = new Thread(() =>
+            {
+                Invoke(new MethodInvoker(() =>
+                {
+                    panel1.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+                    hiddenMessaging.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+                }));
+
+                while (this.Height > panel1.Location.Y + panel1.Height + 50)
+                {
+                    Invoke(new MethodInvoker(() => this.Height -= 1));
+                    Thread.Sleep(2);
+                }
+
+                Invoke(new MethodInvoker(() =>
+                {
+                    panel1.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+                    hiddenMessaging.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right;
+                }));
+                _isReplyOpen = false;
+            }) { IsBackground = true };
+
+            T.Start();
+            _resizeThreads[1] = T;
         }
 
         private void frmPrivate_Shown(object sender, EventArgs e)
         {
 
+        }
+
+        private void lvwPrivateMessages_MouseClick(object sender, MouseEventArgs e)
+        {
+        }
+
+        private void lvwPrivateMessages_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (lvwPrivateMessages.SelectedItems.Count == 0 && _isReplyOpen)
+            {
+                if (_resizeThreads[0] != null && _resizeThreads[0].IsAlive)
+                    _resizeThreads[0].Abort();
+
+                AnimateDefault();
+            }
         }
     }
 }

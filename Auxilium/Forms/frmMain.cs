@@ -212,9 +212,17 @@ namespace Auxilium.Forms
 
             UserInfo user = Users.Find(x => x.Name.ToLower() == message.Username.ToLower());
 
-            Color color = user == null ? Color.Blue : GetRankColor(user.Rank);
+            Color nameColor;
+            Color textColor = user.Name.ToLower() == Username.ToLower() ? Color.DimGray : Color.Black;
 
-            AppendChat(color, Color.Black, message.Username, message.Text, message.Time.ToLocalTime());
+            if (user == null)
+                nameColor = Color.Blue;
+            else if (user.Name.ToLower() == Username.ToLower())
+                nameColor = Color.ForestGreen;
+            else
+                nameColor = GetRankColor(user.Rank);
+
+            AppendChat(nameColor, textColor, message.Username, message.Text, message.Time.ToLocalTime());
 
             if (Options.ChatNotifications && !IsForegroundWindow)
             {
@@ -302,8 +310,6 @@ namespace Auxilium.Forms
                 if (!string.IsNullOrEmpty(message))
                 {
                     //Send the chat message to the server.
-                    //byte[] data = Packer.Serialize((byte)ClientPacket.ChatMessage, message);
-                    //Connection.Send(data);
                     new ClientMessage(message).Execute(Client);
 
                     //Show message locally. May want to wait for verification from server.

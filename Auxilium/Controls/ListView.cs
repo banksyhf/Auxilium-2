@@ -43,12 +43,12 @@ namespace Auxilium.Controls
                     base.DefWndProc(ref m);
                     base.WndProc(ref m);
                     break;
-                case 0x83: // WM_NCCALCSIZE
+                /*case 0x83: // WM_NCCALCSIZE
                     int style = (int)GetWindowLong(this.Handle, GwlStyle);
                     if ((style & WsHscroll) == WsHscroll)
                         SetWindowLong(this.Handle, GwlStyle, style & ~WsHscroll);
                     base.WndProc(ref m);
-                    break;
+                    break;*/
 
                 default:
                     base.WndProc(ref m);

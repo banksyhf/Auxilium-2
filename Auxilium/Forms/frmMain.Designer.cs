@@ -49,7 +49,7 @@
             this.tsmVersion = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmPing = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmSource = new System.Windows.Forms.ToolStripMenuItem();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.statusMain = new System.Windows.Forms.StatusStrip();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.tslSpacer = new System.Windows.Forms.ToolStripStatusLabel();
@@ -190,7 +190,6 @@
             // 
             // tsmPrivateMessages
             // 
-            this.tsmPrivateMessages.Enabled = false;
             this.tsmPrivateMessages.Image = ((System.Drawing.Image)(resources.GetObject("tsmPrivateMessages.Image")));
             this.tsmPrivateMessages.Name = "tsmPrivateMessages";
             this.tsmPrivateMessages.Size = new System.Drawing.Size(56, 22);
@@ -322,9 +321,9 @@
             // 
             // hiddenMain
             // 
-            this.hiddenMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.hiddenMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.hiddenMain.Controls.Add(this.tabLogin);
             this.hiddenMain.Controls.Add(this.tabRegister);
             this.hiddenMain.Controls.Add(this.tabChat);
@@ -684,8 +683,8 @@
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Auxilium";
-            this.Shown += new System.EventHandler(this.frmMain_Shown);
             this.Activated += new System.EventHandler(this.frmMain_Activated);
+            this.Shown += new System.EventHandler(this.frmMain_Shown);
             this.Resize += new System.EventHandler(this.frmMain_Resize);
             this.msMenu.ResumeLayout(false);
             this.msMenu.PerformLayout();

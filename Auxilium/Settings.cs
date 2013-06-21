@@ -33,6 +33,12 @@ namespace Auxilium
 
         public static Options Load()
         {
+            if (!File.Exists(Path))
+            {
+                Options options = new Options();
+                options.Save();
+                return options;
+            }
             try
             {
                 XmlSerializer xml = new XmlSerializer(typeof(Options));

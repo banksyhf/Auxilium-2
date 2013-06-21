@@ -25,7 +25,7 @@ namespace Auxilium.Forms
 
         private Options Options { get; set; }
 
-        private Dictionary<int, UserInfo> Users { get; set; }
+        private List<UserInfo> Users { get; set; }
 
         private SoundPlayer AudioPlayer { get; set; }
 
@@ -125,7 +125,7 @@ namespace Auxilium.Forms
             treeUsers.BeginUpdate();
             treeUsers.Nodes.Clear();
 
-            Users = new Dictionary<int, UserInfo>();
+            Users = new List<UserInfo>();
 
             foreach (ChannelInfo channel in list.Channels)
             {
@@ -147,7 +147,7 @@ namespace Auxilium.Forms
                         childNode.ImageIndex = user.Rank + 1;
                         childNode.SelectedImageIndex = user.Rank + 1;
 
-                        Users.Add(user.ID, user);
+                        Users.Add(user);
                     }
                 }
             }
@@ -210,9 +210,11 @@ namespace Auxilium.Forms
                 return;
             }
 
-            UserInfo user = Users[message.ID];
+            UserInfo user = Users.Find(x => x.Name.ToLower() == message.Username.ToLower());
 
-            AppendChat(GetRankColor(user.Rank), Color.Black, message.Username, message.Text, message.Time.ToLocalTime());
+            Color color = user == null ? Color.Blue : GetRankColor(user.Rank);
+
+            AppendChat(color, Color.Black, message.Username, message.Text, message.Time.ToLocalTime());
 
             if (Options.ChatNotifications && !IsForegroundWindow)
             {
@@ -418,6 +420,11 @@ namespace Auxilium.Forms
             new frmSuggestion(this.Username, this.Client).ShowDialog();
         }
 
+        private void tsmPrivateMessages_Click(object sender, EventArgs e)
+        {
+            new frmPrivate(Client, Username).ShowDialog();
+        }
+
         #endregion " Control Events "
 
         #region " Chat Methods "
@@ -565,12 +572,6 @@ namespace Auxilium.Forms
         }
 
         #endregion " Other Methods "
-
-        private void tsmPrivateMessages_Click(object sender, EventArgs e)
-        {
-            new frmPrivate(Client, Username).ShowDialog();
-        }
-
 
     }
 }

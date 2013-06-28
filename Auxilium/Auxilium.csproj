@@ -119,6 +119,7 @@
     <Compile Include="Forms\MainIndex.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializableFont.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Updating\frmUpdater.cs">
       <SubType>Form</SubType>

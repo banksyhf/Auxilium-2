@@ -8,6 +8,7 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 using Auxilium.Controls;
 using Auxilium.Core;
 using Auxilium.Core.Packets.ClientPackets;
@@ -63,34 +64,61 @@ namespace Auxilium.Forms
             InitializeComponent();
         }
 
+
         private void frmMain_Shown(object sender, EventArgs e)
         {
-            new Thread(CheckForUpdates) { IsBackground = true }.Start();
+            Thread checkForUpdatesThread = new Thread(CheckForUpdates);
+            checkForUpdatesThread.IsBackground = true;
+            checkForUpdatesThread.Start();
 
-            AeroRenderer renderer = new AeroRenderer(ToolbarTheme.Toolbar, true);
+            InitializeUserInterface();
+            InitializePingCalculator();
 
-            msMenu.Renderer = renderer;
-            cmsNotifyIcon.Renderer = renderer;
+            CheckLoginRegistry();
+        }
 
-            tsmVersion.Text += Application.ProductVersion;
-
+        private void InitializeUserInterface()
+        {
             AddResourceToImageList("Auxilium.Images.channel-icon.png");
 
             for (int i = 1; i <= 42; i++)
                 AddResourceToImageList("Auxilium.Images.Ranks." + i + ".png");
 
-            SendPing();
-            System.Timers.Timer pingTimer = new System.Timers.Timer(30000);
-            pingTimer.Elapsed += (x, i) => SendPing();
-            pingTimer.Start();
+            AeroRenderer renderer = new AeroRenderer(ToolbarTheme.Toolbar, true);
+            msMenu.Renderer = renderer;
+            cmsNotifyIcon.Renderer = renderer;
 
-            Color borderColor = System.Windows.Forms.VisualStyles.VisualStyleInformation.TextControlBorder;
-
+            Color borderColor = VisualStyleInformation.TextControlBorder;
             splitContainerChat.Panel1.BackColor = borderColor;
             splitContainerChat.Panel2.BackColor = borderColor;
             splitContainerUserList.Panel2.BackColor = borderColor;
 
-            CheckLoginRegistry();
+            tsmVersion.Text += Application.ProductVersion;
+
+            if (Options.RememberFormSize)
+            {
+                Size = Options.FormSize;
+
+                //The Form.StartPosition property will not ensure that the Form loads in the center 
+                //of the screen when we resolve the Form.Size value from preferences.
+                Size screenSize = Screen.PrimaryScreen.Bounds.Size;
+                Location = new Point(screenSize.Width / 2 - Width / 2, screenSize.Height / 2 - Height / 2);
+            }
+
+            if (Options.RememberFont)
+            {
+                rtbChat.Font = Options.Font;
+                rtbMessage.Font = Options.Font;
+            }
+        }
+
+        private void InitializePingCalculator()
+        {
+            //TODO: This code is causing the program to hang when closed (pressing "X" button)!
+            SendPing();
+            System.Timers.Timer pingTimer = new System.Timers.Timer(30000);
+            pingTimer.Elapsed += (x, i) => SendPing();
+            pingTimer.Start();
         }
 
         private void CheckForUpdates()
@@ -112,6 +140,7 @@ namespace Auxilium.Forms
                 Thread.Sleep(150000);
             }
         }
+
 
         #region " Packet Handlers "
 
@@ -578,6 +607,18 @@ namespace Auxilium.Forms
         }
 
         #endregion " Other Methods "
+
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (Options.RememberFont)
+                Options.Font = rtbChat.Font;
+
+            if (Options.RememberFormSize)
+                Options.FormSize = Size;
+
+            Options.Save();
+        }
+
 
     }
 }

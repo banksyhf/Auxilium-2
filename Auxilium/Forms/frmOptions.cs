@@ -26,6 +26,8 @@ namespace Auxilium.Forms
                 SpaceMessages = cbSpaceMessages.Checked,
                 JoinLeaveEvents = cbUserEvents.Checked,
                 WriteMessages = cbWriteMessages.Checked,
+                RememberFormSize = cbRememberFormSize.Checked,
+                RememberFont = cbRememberFont.Checked
             };
 
             Options.Save();
@@ -40,6 +42,8 @@ namespace Auxilium.Forms
             cbSpaceMessages.Checked = options.SpaceMessages;
             cbUserEvents.Checked = options.JoinLeaveEvents;
             cbWriteMessages.Checked = options.WriteMessages;
+            cbRememberFormSize.Checked = options.RememberFormSize;
+            cbRememberFont.Checked = options.RememberFont;
         }
     }
 }

@@ -4,7 +4,7 @@ using ProtoBuf;
 namespace Auxilium.Core.Packets
 {
     [ProtoContract]
-    public class KeepAlive : IPacket, IDisposable
+    internal class KeepAlive : IPacket, IDisposable
     {
         [ProtoMember(1)]
         public DateTime TimeSent { get; private set; }

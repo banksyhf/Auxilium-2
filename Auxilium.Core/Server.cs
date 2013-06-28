@@ -66,11 +66,9 @@ namespace Auxilium.Core
 
         public int MaxConnections { get; set; }
 
-        public bool SingleInstanceClients {get; set;}
-
         public bool Listening { get; private set; }
 
-        //private List<KeepAlive> _keepAlives;
+        private List<KeepAlive> _keepAlives;
 
         private List<Client> _clients;
 
@@ -95,7 +93,7 @@ namespace Auxilium.Core
             {
                 if (!Listening)
                 {
-                    //_keepAlives = new List<KeepAlive>();
+                    _keepAlives = new List<KeepAlive>();
 
                     _clients = new List<Client>();
 
@@ -103,7 +101,7 @@ namespace Auxilium.Core
                     _item.Completed += Process;
 
                     _handle = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                   // _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                    _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                     _handle.NoDelay = true;
 
                     _handle.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -114,7 +112,7 @@ namespace Auxilium.Core
 
                     OnServerState(true);
 
-                    //SendKeepAlives();
+                    SendKeepAlives();
 
                     if (!_handle.AcceptAsync(_item))
                         Process(null, _item);
@@ -153,27 +151,20 @@ namespace Auxilium.Core
                 {
                     Client T = new Client(this, e.AcceptSocket, BufferSize, PacketTypes.ToArray());
 
-                    bool cancelConnection = false;
-
                     lock (_clients)
                     {
-                        if (_clients.Count >= MaxConnections)
+                        if (_clients.Count <= MaxConnections)
                         {
-                            cancelConnection = true;
-                        }else if (SingleInstanceClients && AddressConnected(T.EndPoint.Address)){
-                            cancelConnection = true;
-                        }
-
-                        if (cancelConnection)
-                        {
-                            T.Disconnect();
-                        }else{
                             _clients.Add(T);
                             T.ClientState += HandleState;
                             T.ClientRead += OnClientRead;
                             T.ClientWrite += OnClientWrite;
 
                             OnClientState(T, true);
+                        }
+                        else
+                        {
+                            T.Disconnect();
                         }
                     }
 
@@ -192,82 +183,69 @@ namespace Auxilium.Core
             }
         }
 
-        private bool AddressConnected(IPAddress address)
+        private void SendKeepAlives()
         {
-            foreach (Client client in Clients)
+            new Thread(() =>
             {
-                if (client.EndPoint.Address.Equals(address))
+                while (true)
                 {
-                    return true;
+                    try
+                    {
+                        foreach (Client client in Clients)
+                        {
+                            KeepAlive keepAlive = new KeepAlive();
+                            lock (_keepAlives)
+                            {
+                                _keepAlives.Add(keepAlive);
+                            }
+                            keepAlive.Execute(client);
+                            Timer timer = new Timer(KeepAliveCallback, keepAlive, 10000, Timeout.Infinite);
+                        }
+                    }
+                    catch { }
+                    Thread.Sleep(10000);
                 }
-            }
-
-            return false;
+            }) { IsBackground = true }.Start();
         }
 
-        //private void SendKeepAlives()
-        //{
-        //    new Thread(() =>
-        //    {
-        //        while (true)
-        //        {
-        //            try
-        //            {
-        //                foreach (Client client in Clients)
-        //                {
-        //                    KeepAlive keepAlive = new KeepAlive();
-        //                    lock (_keepAlives)
-        //                    {
-        //                        _keepAlives.Add(keepAlive);
-        //                    }
-        //                    keepAlive.Execute(client);
-        //                    Timer timer = new Timer(KeepAliveCallback, keepAlive, 10000, Timeout.Infinite);
-        //                }
-        //            }
-        //            catch { }
-        //            Thread.Sleep(10000);
-        //        }
-        //    }) { IsBackground = true }.Start();
-        //}
+        private void KeepAliveCallback(object state)
+        {
+            lock (_keepAlives)
+            {
+                KeepAlive keepAlive = (KeepAlive)state;
 
-        //private void KeepAliveCallback(object state)
-        //{
-        //    lock (_keepAlives)
-        //    {
-        //        KeepAlive keepAlive = (KeepAlive)state;
+                if (_keepAlives.Contains(keepAlive))
+                {
+                    keepAlive.Client.Disconnect();
+                    _keepAlives.Remove(keepAlive);
+                    keepAlive.Dispose();
+                    keepAlive = null;
+                }
+            }
+        }
 
-        //        if (_keepAlives.Contains(keepAlive))
-        //        {
-        //            keepAlive.Client.Disconnect();
-        //            _keepAlives.Remove(keepAlive);
-        //            keepAlive.Dispose();
-        //            keepAlive = null;
-        //        }
-        //    }
-        //}
+        internal void HandleKeepAlivePacket(KeepAliveResponse packet, Client client)
+        {
+            if (_keepAlives.Count == 0)
+                return;
 
-        //internal void HandleKeepAlivePacket(KeepAliveResponse packet, Client client)
-        //{
-        //    if (_keepAlives.Count == 0)
-        //        return;
-
-        //    lock (_keepAlives)
-        //    {
-        //        for (int i = 0; i < _keepAlives.Count; i++)
-        //        {
-        //            KeepAlive keepAlive = _keepAlives[i];
-        //            if (keepAlive.TimeSent == packet.TimeSent && keepAlive.Client == client)
-        //            {
-        //                _keepAlives.Remove(keepAlive);
-        //                keepAlive.Dispose();
-        //                keepAlive = null;
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    packet.Dispose();
-        //    packet = null;
-        //}
+            lock (_keepAlives)
+            {
+                for (int i = 0; i < _keepAlives.Count; i++)
+                {
+                    KeepAlive keepAlive = _keepAlives[i];
+                    if (keepAlive.TimeSent == packet.TimeSent && keepAlive.Client == client)
+                    {
+                        _keepAlives.Remove(keepAlive);
+                        keepAlive.Dispose();
+                        keepAlive = null;
+                        break;
+                    }
+                }
+            }
+            packet.Dispose();
+            packet = null;
+        }
 
         public void Disconnect()
         {

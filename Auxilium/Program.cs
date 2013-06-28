@@ -27,28 +27,10 @@ namespace Auxilium
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
             MainForm = new frmMain(Client);
             Connect();
 
-            Application.ApplicationExit += Application_ApplicationExit;
-
             Application.Run(MainForm);
-        }
-
-        static void Application_ApplicationExit(object sender, EventArgs e)
-        {
-            if (MainForm != null && MainForm.notifyIcon != null)
-            {
-                try
-                {
-                    MainForm.notifyIcon.Visible = false;
-                    MainForm.notifyIcon = null;
-                }
-                catch
-                {
-                }
-            }
         }
 
         public static void Connect()
@@ -63,7 +45,7 @@ namespace Auxilium
 
             Client.AddTypesToSerializer(typeof(IPacket), new Type[]
             {
-                typeof(Initialize), typeof(KeepAlive),
+                typeof(Initialize),
                 typeof(Login), typeof(LoginResponse),
                 typeof(Register), typeof(RegisterResponse),
                 typeof(ChannelListRequest), typeof(ChannelList), typeof(ChangeChannel),
@@ -77,12 +59,13 @@ namespace Auxilium
             Client.ClientFail += ClientFail;
 
 #if DEBUG
-            Client.Connect("127.0.0.1", 35);
+            //TODO: Change the IP back to "127.0.0.1"
+            Client.Connect("50.115.161.154", 35);
 #else
             Client.Connect("50.115.161.154", 35);
 #endif
 
-            TryStartNewThread(new Action(() => { while (true) { if (Client.Connected) new KeepAlive().Execute(Client); Thread.Sleep(25000); } }));
+            //TryStartNewThread(new Action(() => { while (true) { if (Client.Connected) new KeepAlive().Execute(Client); Thread.Sleep(25000); } }));
 
             if (MainForm != null)
                 MainForm.Client = Client;

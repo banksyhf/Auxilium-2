@@ -35,6 +35,8 @@
             this.cbSpaceMessages = new System.Windows.Forms.CheckBox();
             this.cbUserEvents = new System.Windows.Forms.CheckBox();
             this.cbWriteMessages = new System.Windows.Forms.CheckBox();
+            this.cbRememberFormSize = new System.Windows.Forms.CheckBox();
+            this.cbRememberFont = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // cbTimestamps
@@ -122,11 +124,35 @@
             this.cbWriteMessages.UseVisualStyleBackColor = true;
             this.cbWriteMessages.CheckedChanged += new System.EventHandler(this.SettingsChanged);
             // 
+            // cbRememberFormSize
+            // 
+            this.cbRememberFormSize.AutoSize = true;
+            this.cbRememberFormSize.Location = new System.Drawing.Point(12, 173);
+            this.cbRememberFormSize.Name = "cbRememberFormSize";
+            this.cbRememberFormSize.Size = new System.Drawing.Size(126, 17);
+            this.cbRememberFormSize.TabIndex = 7;
+            this.cbRememberFormSize.Text = "Remember Form Size";
+            this.cbRememberFormSize.UseVisualStyleBackColor = true;
+            this.cbRememberFormSize.CheckedChanged += new System.EventHandler(this.SettingsChanged);
+            // 
+            // cbRememberFont
+            // 
+            this.cbRememberFont.AutoSize = true;
+            this.cbRememberFont.Location = new System.Drawing.Point(12, 196);
+            this.cbRememberFont.Name = "cbRememberFont";
+            this.cbRememberFont.Size = new System.Drawing.Size(101, 17);
+            this.cbRememberFont.TabIndex = 8;
+            this.cbRememberFont.Text = "Remember Font";
+            this.cbRememberFont.UseVisualStyleBackColor = true;
+            this.cbRememberFont.CheckedChanged += new System.EventHandler(this.SettingsChanged);
+            // 
             // frmOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(201, 200);
+            this.ClientSize = new System.Drawing.Size(201, 250);
+            this.Controls.Add(this.cbRememberFont);
+            this.Controls.Add(this.cbRememberFormSize);
             this.Controls.Add(this.cbWriteMessages);
             this.Controls.Add(this.cbUserEvents);
             this.Controls.Add(this.cbSpaceMessages);
@@ -152,5 +178,7 @@
         private System.Windows.Forms.CheckBox cbSpaceMessages;
         private System.Windows.Forms.CheckBox cbUserEvents;
         private System.Windows.Forms.CheckBox cbWriteMessages;
+        private System.Windows.Forms.CheckBox cbRememberFormSize;
+        private System.Windows.Forms.CheckBox cbRememberFont;
     }
 }

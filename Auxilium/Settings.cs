@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -22,13 +23,25 @@ namespace Auxilium
 
         public bool WriteMessages { get; set; }
 
+
+        public bool RememberFormSize { get; set; }
+        public Size FormSize { get; set; }
+
+        public bool RememberFont { get; set; }
+        public SerializableFont Font { get; set; }
+
+
+
         public static readonly string Path = System.IO.Path.Combine(Application.StartupPath, "auxilium.xml");
+
 
         public Options()
         {
             this.Timestamps = true;
             this.ChatNotifications = true;
             this.SpaceMessages = true;
+            //this.Font = new Font("Segoe UI", 8.25f);
+            //this.FormSize = new Size(610, 398);
         }
 
         public static Options Load()

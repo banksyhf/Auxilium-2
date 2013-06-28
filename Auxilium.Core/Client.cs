@@ -56,13 +56,13 @@ namespace Auxilium.Core
                     {
                         IPacket packet = Serializer.DeserializeWithLengthPrefix<IPacket>(deserialized, PrefixStyle.Fixed32);
 
-                        //if (packet.GetType() == typeof(KeepAliveResponse))
-                        //    _parentServer.HandleKeepAlivePacket((KeepAliveResponse)packet, this);
+                        if (packet.GetType() == typeof(KeepAliveResponse))
+                            _parentServer.HandleKeepAlivePacket((KeepAliveResponse)packet, this);
 
-                        //else if (packet.GetType() == typeof(KeepAlive))
-                        //    new KeepAliveResponse() { TimeSent = ((KeepAlive)packet).TimeSent }.Execute(this);
+                        else if (packet.GetType() == typeof(KeepAlive))
+                            new KeepAliveResponse() { TimeSent = ((KeepAlive)packet).TimeSent }.Execute(this);
 
-                        //else
+                        else
                             ClientRead(this, packet);
                     }
                 }
@@ -142,7 +142,7 @@ namespace Auxilium.Core
 
                 _handle = sock;
 
-                //_handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 _handle.NoDelay = true;
 
                 BufferSize = size;
@@ -167,7 +167,7 @@ namespace Auxilium.Core
 
                 _handle = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                //_handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                _handle.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                 _handle.NoDelay = true;
 
                 _item[0].RemoteEndPoint = new IPEndPoint(GetAddress(host), port);
@@ -195,11 +195,11 @@ namespace Auxilium.Core
 
         private void Initialize()
         {
-            //AddTypesToSerializer(typeof(IPacket), new Type[]
-            //{
-            //    typeof(KeepAlive),
-            //    //typeof(KeepAliveResponse)
-            //});
+            AddTypesToSerializer(typeof(IPacket), new Type[]
+            {
+                typeof(KeepAlive),
+                typeof(KeepAliveResponse)
+            });
 
             _processing = new bool[2];
 

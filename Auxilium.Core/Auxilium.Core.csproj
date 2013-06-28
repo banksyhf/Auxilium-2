@@ -56,6 +56,7 @@
     <Compile Include="Packets\ClientPackets\Login.cs" />
     <Compile Include="Packets\ClientPackets\Register.cs" />
     <Compile Include="Packets\KeepAlive.cs" />
+    <Compile Include="Packets\KeepAliveResponse.cs" />
     <Compile Include="Packets\ServerPackets\ChannelInfo.cs" />
     <Compile Include="Packets\ServerPackets\Initialize.cs" />
     <Compile Include="Packets\ServerPackets\LoginResponse.cs" />
